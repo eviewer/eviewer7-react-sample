@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="512px" height="512px" class=""><g><g>
+	<rect x="61" y="61" style="fill:#61729B;" width="90" height="90" data-original="#61729B"/>
+	<rect x="361" y="61" style="fill:#47568C;" width="90" height="90" data-original="#47568C"/>
+	<rect x="121" style="fill:#FFF5F5;" width="270" height="151" data-original="#FFF5F5" class=""/>
+	<rect x="256" style="fill:#EFE2DD;" width="135" height="151" data-original="#EFE2DD" class=""/>
+	<polygon style="fill:#FF0A00" points="512,121 512,355.3 451,385.3 421,361 91,361 61,385.3 0,355.3 0,121  " data-original="#FF9100" class="" data-old_color="#FF0200"/>
+	<polygon style="fill:#FF2100" points="512,121 512,355.3 451,385.3 421,361 256,361 256,121  " data-original="#FF641A" class="" data-old_color="#FF1900"/>
+	<rect x="61" y="166" style="fill:#61729B;" width="30" height="30" data-original="#61729B"/>
+	<rect x="121" y="166" style="fill:#61729B;" width="30" height="30" data-original="#61729B"/>
+	<polygon style="fill:#61729B;" points="451,241 451,385.3 439.6,391 72.4,391 61,385.3 61,241 121,241 151,271 361,271 391,241     " data-original="#61729B"/>
+	<polygon style="fill:#47568C;" points="451,241 451,385.3 439.6,391 256,391 256,271 361,271 391,241  " data-original="#47568C"/>
+	<rect x="121" y="241" style="fill:#FFF5F5;" width="270" height="271" data-original="#FFF5F5" class=""/>
+	<rect x="256" y="241" style="fill:#EFE2DD;" width="135" height="271" data-original="#EFE2DD" class=""/>
+	<polygon style="fill:#FF0A00" points="331,301 331,421 316,436 301,421 301,301  " data-original="#FF9100" class="" data-old_color="#FF0200"/>
+	<polygon style="fill:#00D6FF" points="211,361 211,421 196,436 181,421 181,361  " data-original="#7FE881" class="active-path" data-old_color="#00CEFF"/>
+	<rect x="241" y="331" style="fill:#00AFFF" width="30" height="105" data-original="#FFDA2D" class="" data-old_color="#00B7FF"/>
+	<rect x="256" y="331" style="fill:#0099FF" width="15" height="105" data-original="#FDBF00" class="" data-old_color="#00A0FF"/>
+	<rect x="181" y="421" style="fill:#47568C;" width="150" height="30" data-original="#47568C"/>
+	<rect x="256" y="421" style="fill:#47568C;" width="75" height="30" data-original="#47568C"/>
+</g></g> </svg>
