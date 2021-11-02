@@ -1,7 +1,7 @@
 import React, { Component, useState } from "react";
 import App from "./App";
 import ReactDOM from "react-dom";
-import eViewerApp from "@mstechusa/eviewer7/js/eViewer7 v1.0.10";
+import eViewerApp from "@mstechusa/eviewer7/js/eViewer7 v1.0.11";
 
 class Form extends Component {
   constructor(props) {
@@ -15,6 +15,7 @@ class Form extends Component {
       isViewerLoaded: false,
       hideToolBar: false,
       saveMultipartPayLoadType: false,
+      fitStyle: "default",
     };
   }
   handleInputviewerServerURL = (event) => {
@@ -63,6 +64,7 @@ class Form extends Component {
         Authorization: "Bearer " + this.state.token,
         Accept: "application/octet-stream.",
       },
+      savePayLoadType: savePayloadType,
     };
 
     this.eViewerObj.setDocumentEndPointOptions(
@@ -130,14 +132,14 @@ class Form extends Component {
               </div>
               {}
               {
-                <div className="form-group">
+                <div className="form-group" style={{ display: "flex" }}>
                   <input
                     type="checkbox"
                     className="form-control form-control-sm"
                     name="savePayloadType"
                     onChange={this.handleSavePayloadType}
                   />
-                  &nbsp;SavePayloadType: multipart/form-data
+                  <div>&nbsp;SavePayloadType - multipart/form-data</div>
                 </div>
               }
               <button className="btn btn-primary" onClick={this.handleSubmit}>
@@ -149,8 +151,10 @@ class Form extends Component {
 
         {}
         <div
-          id="viewer"
-          style={{ display: this.state.isViewerLoaded ? "block" : "none" }}
+          id="mainviewer"
+          style={{
+            display: this.state.isViewerLoaded ? "block" : "none",
+          }}
         >
           <App userName={this.state.userName} />
         </div>

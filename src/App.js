@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import "./App.css";
 import Form from "./form";
-import eViewerApp from "@mstechusa/eviewer7/js/eViewer7 v1.0.10";
+import eViewerApp from "@mstechusa/eviewer7/js/eViewer7 v1.0.11";
 import "./js/events";
 import uuid from "react-uuid";
 
@@ -51,6 +51,7 @@ class App extends Component {
       stampDetailsArray: [],
       comment: false,
       reply: false,
+      addReply: false,
     };
   }
   componentDidMount() {
@@ -60,7 +61,7 @@ class App extends Component {
   async loadViewer() {
     this.eViewerObj = new eViewerApp();
 
-    this.eViewerObj.loadViewer("viewer", null, null).then(() => {
+    this.eViewerObj.loadViewer("eviewer", null, null, "bestFit").then(() => {
       console.log("loading viewer successfully");
     });
     await import("@mstechusa/eviewer7/styles.css");
@@ -282,7 +283,6 @@ class App extends Component {
     this.setState({ stampAnnotationSelected: false });
     this.setState({ coordinateAnnotationSelected: false });
     this.setState({ editAnnotationDiv: false });
-    this.setState({ addReplyDiv: false });
     this.setState({ getAllRepliesDiv: false });
     this.setState({ imageStampDiv: false });
     this.setState({ multiAnnotationDiv: false });
@@ -506,10 +506,6 @@ class App extends Component {
         this.setState({ editAnnotationDiv: true });
         break;
 
-      case "addReply":
-        this.setState({ addReplyDiv: true });
-        break;
-
       case "getAllReplies":
         this.setState({ getAllRepliesDiv: true });
         break;
@@ -571,6 +567,29 @@ class App extends Component {
   editAnnotation = (event) => {
     event.preventDefault();
 
+    let options = {
+      borderWidth: +event.target[6].value,
+      borderColor: event.target[7].value,
+      fillColor: event.target[8].value,
+      // text: optionValue[3],
+      opacity: +event.target[9].value,
+      fontFace: event.target[10].value,
+      fontSize: +event.target[11].value,
+      FontColor: event.target[12].value,
+      // image: "BASE64STRING or relative path to image"
+    };
+    if (
+      options.borderWidth === 0 &&
+      options.borderColor === "" &&
+      options.fillColor === "" &&
+      options.opacity === 0 &&
+      options.fontFace === "" &&
+      options.fontSize === 0 &&
+      options.FontColor === ""
+    ) {
+      options = undefined;
+    }
+
     this.eViewerObj = null;
     if (this.eViewerObj === null) {
       this.eViewerObj = new eViewerApp();
@@ -592,7 +611,8 @@ class App extends Component {
     this.eViewerObj.annotationService.editShape(
       this.selectedAnnotation.annID,
       this.state.pageNO,
-      annotationData
+      annotationData,
+      options
     );
     this.disableAllDiv();
     this.selectedAnnotation.name = null;
@@ -600,28 +620,15 @@ class App extends Component {
     this.setState({ editAnnotationDiv: false });
   };
 
-  addReply = (event) => {
-    event.preventDefault();
-
-    this.selectedAnnotation.replyText = event.target[0].value;
-    this.selectedAnnotation.annID = event.target[1].value;
-
-    this.eViewerObj.annotationService.addReply(
-      this.selectedAnnotation.annID,
-      this.selectedAnnotation.replyText
-    );
-    this.disableAllDiv();
-    this.selectedAnnotation.addReply = false;
-    this.setState({ addReplyDiv: false });
-  };
-
   getAllReply = (event) => {
     event.preventDefault();
     this.selectedAnnotation.annID = event.target[0].value;
 
-    this.eViewerObj.annotationService.getAllReplies(
-      this.selectedAnnotation.annID
-    );
+    this.eViewerObj.annotationService
+      .getAllReplies(this.selectedAnnotation.annID)
+      .then((response) => {
+        console.log(response);
+      });
     this.disableAllDiv();
     this.selectedAnnotation.getAllReplies = false;
     this.setState({ getAllRepliesDiv: false });
@@ -665,7 +672,7 @@ class App extends Component {
       case "SignHere Left":
       case "SignHere Right":
       case "Urgent":
-        this.selectedAnnotation.name = "stamp";
+        this.selectedAnnotation.name = "imageStamp";
         this.eViewerObj.annotationService.selectShape(
           this.selectedAnnotation.name,
           stampInfo
@@ -727,6 +734,67 @@ class App extends Component {
   drawMultiPageAnnotation = (event) => {
     event.preventDefault();
 
+    let options = {
+      borderWidth: 0,
+      borderColor: "",
+      fillColor: "",
+      opacity: 0,
+      fontFace: "",
+      fontSize: 0,
+      FontColor: "",
+    };
+    if (
+      this.selectedAnnotation.name === "line" ||
+      this.selectedAnnotation.name === "arrow"
+    ) {
+      options.borderWidth = +event.target[5].value;
+      options.borderColor = event.target[6].value;
+      options.opacity = +event.target[7].value;
+    } else if (
+      this.selectedAnnotation.name === "circle" ||
+      this.selectedAnnotation.name === "rectangle"
+    ) {
+      options.borderWidth = +event.target[5].value;
+      options.borderColor = event.target[6].value;
+      options.opacity = +event.target[7].value;
+      options.fillColor = event.target[8].value;
+    } else if (this.selectedAnnotation.name === "highlight") {
+      options.opacity = +event.target[5].value;
+      options.fillColor = event.target[6].value;
+    } else if (this.selectedAnnotation.name === "text") {
+      options.borderWidth = +event.target[5].value;
+      options.borderColor = event.target[6].value;
+      options.fillColor = event.target[7].value;
+      options.opacity = +event.target[8].value;
+      options.fontFace = event.target[9].value;
+      options.fontSize = +event.target[10].value;
+      options.FontColor = event.target[11].value;
+    } else if (this.selectedAnnotation.name === "checkpoint") {
+      options.fillColor = event.target[5].value;
+    } else if (this.selectedAnnotation.name === "stamp") {
+      options.borderWidth = +event.target[5].value;
+      options.borderColor = event.target[6].value;
+      options.fillColor = event.target[7].value;
+      options.fontFace = event.target[8].value;
+      options.fontSize = +event.target[9].value;
+      options.FontColor = event.target[10].value;
+    }
+    if (
+      (options.borderWidth === 0 || options.borderWidth === undefined) &&
+      (options.borderColor === "" || options.borderColor === undefined) &&
+      (options.fillColor === "" || options.fillColor === undefined) &&
+      (options.opacity === 0 ||
+        options.opacity === undefined ||
+        isNaN(options.opacity)) &&
+      (options.fontFace === "" || options.fontFace === undefined) &&
+      (options.fontSize === 0 ||
+        options.fontSize === undefined ||
+        isNaN(options.fontSize)) &&
+      (options.FontColor === "" || options.FontColor === undefined)
+    ) {
+      options = undefined;
+    }
+
     this.eViewerObj = null;
     if (this.eViewerObj === null) {
       this.eViewerObj = new eViewerApp();
@@ -773,7 +841,11 @@ class App extends Component {
       Height: this.selectedAnnotation.endY, // 446, //inputData.annCanvasEndY
     };
 
-    this.eViewerObj.annotationService.drawMultiShape(pageRange, annotationData);
+    this.eViewerObj.annotationService.drawShapes(
+      pageRange,
+      annotationData,
+      options
+    );
     this.disableAllDiv();
     this.selectedAnnotation.name = null;
     this.selectedAnnotation.multiAnnotation = false;
@@ -786,16 +858,29 @@ class App extends Component {
     switch (value) {
       case "comment":
         this.setState({ replyDiv: false });
+        this.setState({ addReplyDiv: false });
         this.setState({ commentDiv: true });
         this.selectedAnnotation.comment = true;
         this.selectedAnnotation.reply = false;
+        this.selectedAnnotation.addReply = false;
+        break;
+
+      case "addReply":
+        this.setState({ replyDiv: false });
+        this.setState({ commentDiv: false });
+        this.setState({ addReplyDiv: true });
+        this.selectedAnnotation.comment = false;
+        this.selectedAnnotation.reply = false;
+        this.selectedAnnotation.addReply = true;
         break;
 
       case "reply":
         this.setState({ commentDiv: false });
+        this.setState({ addReplyDiv: false });
         this.setState({ replyDiv: true });
         this.selectedAnnotation.comment = false;
         this.selectedAnnotation.reply = true;
+        this.selectedAnnotation.addReply = false;
         break;
     }
   };
@@ -807,16 +892,31 @@ class App extends Component {
     if (this.selectedAnnotation.comment) {
       annId = event.target[0].value;
       textUpdate = event.target[1].value;
+      this.eViewerObj.annotationService.updateCommentOrReply(
+        annId,
+        textUpdate,
+        replyId
+      );
     }
     if (this.selectedAnnotation.reply) {
       annId = event.target[0].value;
       textUpdate = event.target[1].value;
       replyId = event.target[2].value;
+      this.eViewerObj.annotationService.updateCommentOrReply(
+        annId,
+        textUpdate,
+        replyId
+      );
     }
-    this.eViewerObj.annotationService.updateComment(annId, textUpdate, replyId);
+    if (this.selectedAnnotation.addReply) {
+      annId = event.target[0].value;
+      textUpdate = event.target[1].value;
+      this.eViewerObj.annotationService.addReply(annId, textUpdate);
+    }
     this.selectedAnnotation.updateComment = false;
     this.setState({ commentDiv: false });
     this.setState({ replyDiv: false });
+    this.setState({ addReplyDiv: false });
   };
 
   removeReply = (event) => {
@@ -830,26 +930,36 @@ class App extends Component {
   removeAllReply = (event) => {
     event.preventDefault();
     const annId = event.target[0].value;
-    this.eViewerObj.annotationService.removeAllReply(annId);
+    this.eViewerObj.annotationService.removeAllReplies(annId);
     this.setState({ removeAllReplyDiv: false });
   };
 
   getUserReply = (event) => {
     event.preventDefault();
     const annId = event.target[0].value;
-    this.eViewerObj.annotationService.getReplyByUser(annId);
+    this.eViewerObj.annotationService.getReplyByUser(annId).then((response) => {
+      console.log(response);
+    });
     this.setState({ getuserReplyDiv: false });
   };
 
   getAllAnnotations = (event) => {
     const username = event.target[0].value;
-    this.eViewerObj.annotationService.getAllAnnotations(username);
+    this.eViewerObj.annotationService
+      .getAllAnnotations(username)
+      .then((response) => {
+        console.log(response);
+      });
     this.setState({ getAllAnnDiv: false });
   };
 
   getAnnotationDetails = (event) => {
     const annId = event.target[0].value;
-    this.eViewerObj.annotationService.getAnnotationDetails(annId);
+    this.eViewerObj.annotationService
+      .getAnnotationDetails(annId)
+      .then((response) => {
+        console.log(response);
+      });
     this.setState({ getAnnDetailsDiv: false });
   };
 
@@ -885,11 +995,11 @@ class App extends Component {
         pageRange.push(+this.state.pageNO);
       }
     }
-    this.eViewerObj.annotationService.getFilteredAnnotations(
-      username,
-      annType,
-      pageRange
-    );
+    this.eViewerObj.annotationService
+      .getFilteredAnnotations(username, annType, pageRange)
+      .then((response) => {
+        console.log(response);
+      });
     this.setState({ getFilteredAnnDiv: false });
   };
 
@@ -1021,9 +1131,6 @@ class App extends Component {
               <option className="text-dark" value="deleteAnnotation">
                 Delete Annotation
               </option>
-              <option className="text-dark" value="addReply">
-                Add Reply
-              </option>
               <option className="text-dark" value="getUserReply">
                 Get User Reply
               </option>
@@ -1031,7 +1138,7 @@ class App extends Component {
                 Get All Replies
               </option>
               <option className="text-dark" value="updateComment">
-                Update Comment
+                Update Comment or Reply
               </option>
               <option className="text-dark" value="removeReply">
                 Remove Reply
@@ -1398,47 +1505,53 @@ class App extends Component {
                           required
                         />
                       </div>
-                      {}
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm col-sm-3"
+                          name="borderWidth"
+                          placeholder="borderWidth"
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm col-sm-3"
+                          name="borderColor"
+                          placeholder="borderColor"
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm col-sm-3"
+                          name="fillColor"
+                          placeholder="fillColor"
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm col-sm-3"
+                          name="opacity"
+                          placeholder="opacity"
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm col-sm-3"
+                          name="fontFace"
+                          placeholder="FontFace"
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm col-sm-3"
+                          name="fontSize"
+                          placeholder="fontSize"
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm col-sm-3"
+                          name="fontColor"
+                          placeholder="FontColor"
+                        />
+                      </div>
                     </div>
                     <button type="submit" className="btn btn-primary">
                       Edit Annotation
-                    </button>
-                    &nbsp;
-                  </form>
-                </div>
-              </div>
-            </>
-          ) : (
-            ""
-          )}
-
-          {this.state.addReplyDiv === true ? (
-            <>
-              <div>
-                <div className="login-box card bg-info div-mst">
-                  <form className="form-horizontal" onSubmit={this.addReply}>
-                    <div className="form-group">
-                      <div>
-                        <input
-                          type="text"
-                          className="form-control form-control-sm"
-                          name="replyText"
-                          placeholder="Add Reply"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          className="form-control form-control-sm"
-                          name="annId"
-                          placeholder="Enter Annotation Id"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <button type="submit" className="btn btn-primary">
-                      Add Reply
                     </button>
                     &nbsp;
                   </form>
@@ -1609,7 +1722,170 @@ class App extends Component {
                           required
                         />
                       </div>
-                      {}
+                      {(this.selectedAnnotation.name === "line" ||
+                        this.selectedAnnotation.name === "arrow") && (
+                        <>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderWidth"
+                            placeholder="borderWidth"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderColor"
+                            placeholder="borderColor"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="opacity"
+                            placeholder="opacity"
+                          />
+                        </>
+                      )}
+                      {(this.selectedAnnotation.name === "circle" ||
+                        this.selectedAnnotation.name === "rectangle") && (
+                        <>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderWidth"
+                            placeholder="borderWidth"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderColor"
+                            placeholder="borderColor"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="opacity"
+                            placeholder="opacity"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fillColor"
+                            placeholder="fillColor"
+                          />
+                        </>
+                      )}
+                      {this.selectedAnnotation.name === "highlight" && (
+                        <>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="opacity"
+                            placeholder="opacity"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fillColor"
+                            placeholder="fillColor"
+                          />
+                        </>
+                      )}
+                      {this.selectedAnnotation.name === "text" && (
+                        <>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderWidth"
+                            placeholder="borderWidth"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderColor"
+                            placeholder="borderColor"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fillColor"
+                            placeholder="fillColor"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="opacity"
+                            placeholder="opacity"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fontFace"
+                            placeholder="FontFace"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fontSize"
+                            placeholder="fontSize"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fontColor"
+                            placeholder="FontColor"
+                          />
+                        </>
+                      )}
+                      {this.selectedAnnotation.name === "checkpoint" && (
+                        <>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fillColor"
+                            placeholder="fillColor"
+                          />
+                        </>
+                      )}
+                      {this.selectedAnnotation.name === "stamp" && (
+                        <>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderWidth"
+                            placeholder="borderWidth"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderColor"
+                            placeholder="borderColor"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fillColor"
+                            placeholder="fillColor"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fontFace"
+                            placeholder="FontFace"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fontSize"
+                            placeholder="fontSize"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fontColor"
+                            placeholder="FontColor"
+                          />
+                        </>
+                      )}
                     </div>
                     <button type="submit" className="btn btn-primary">
                       Draw {this.selectedAnnotation.name}
@@ -1667,7 +1943,10 @@ class App extends Component {
                       Select To Update
                     </option>
                     <option className="text-dark" value="comment">
-                      Comment
+                      Add / Update Comment
+                    </option>
+                    <option className="text-dark" value="addReply">
+                      Add Reply
                     </option>
                     <option className="text-dark" value="reply">
                       Reply
@@ -1706,7 +1985,7 @@ class App extends Component {
                       </div>
                     </div>
                     <button type="submit" className="btn btn-primary">
-                      Update Comment
+                      Add / Update Comment
                     </button>
                     &nbsp;
                   </form>
@@ -1753,6 +2032,43 @@ class App extends Component {
                     </div>
                     <button type="submit" className="btn btn-primary">
                       Update Reply
+                    </button>
+                    &nbsp;
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.addReplyDiv === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form className="form-horizontal" onSubmit={this.updateCR}>
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="annId"
+                          placeholder="Annotation Id..."
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="updateReply"
+                          placeholder="Add Reply"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-primary">
+                      Add Reply
                     </button>
                     &nbsp;
                   </form>
@@ -1877,7 +2193,6 @@ class App extends Component {
                           className="form-control form-control-sm"
                           name="userName"
                           placeholder="user name"
-                          required
                         />
                       </div>
                     </div>
@@ -1939,7 +2254,6 @@ class App extends Component {
                           className="form-control form-control-sm"
                           name="userName"
                           placeholder="username"
-                          required
                         />
                       </div>
                       <div>
@@ -1948,7 +2262,6 @@ class App extends Component {
                           className="form-control form-control-sm"
                           name="annType"
                           placeholder="Annotation Type"
-                          required
                         />
                       </div>
                       <div>
@@ -1957,7 +2270,6 @@ class App extends Component {
                           className="form-control form-control-sm"
                           name="pageNo"
                           placeholder="page Range"
-                          required
                         />
                       </div>
                     </div>
@@ -1975,7 +2287,7 @@ class App extends Component {
 
           <hr></hr>
           {/* <app-root></app-root> */}
-          <div id="viewer"></div>
+          <div id="eviewer" style={{ height: "100vh", overflow: "auto" }}></div>
         </div>
       </>
     );
