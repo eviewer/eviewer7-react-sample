@@ -1,7 +1,7 @@
 import React, { Component, useState } from "react";
 import App from "./App";
 import ReactDOM from "react-dom";
-import eViewerApp from "@mstechusa/eviewer7/js/eViewer7 v1.0.11";
+import eViewerApp from "@mstechusa/eviewer7/js/eViewer7";
 
 class Form extends Component {
   constructor(props) {

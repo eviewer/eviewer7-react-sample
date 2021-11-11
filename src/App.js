@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import "./App.css";
 import Form from "./form";
-import eViewerApp from "@mstechusa/eviewer7/js/eViewer7 v1.0.11";
+import eViewerApp from "@mstechusa/eviewer7/js/eViewer7";
 import "./js/events";
 import uuid from "react-uuid";
 
@@ -2286,7 +2286,7 @@ class App extends Component {
           )}
 
           <hr></hr>
-          {/* <app-root></app-root> */}
+          {}
           <div id="eviewer" style={{ height: "100vh", overflow: "auto" }}></div>
         </div>
       </>
