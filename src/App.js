@@ -63,6 +63,7 @@ class App extends Component {
 
     this.eViewerObj.loadViewer("eviewer", null, null, "bestFit").then(() => {
       console.log("loading viewer successfully");
+      this.setViewerOptions();
     });
     await import("@mstechusa/eviewer7/styles.css");
     await import("@mstechusa/eviewer7/scripts");
@@ -542,9 +543,58 @@ class App extends Component {
         this.setState({ getFilteredAnnDiv: true });
         break;
 
+      case "changeButtonState":
+        this.changeCustomButtonState();
       default:
         break;
     }
+  };
+
+  changeCustomButtonState = () => {
+    this.eViewerObj.updateButtons([
+      {
+        id: "leftdummybt",
+        name: "Left Dummy",
+        alignment: "leftToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "",
+      },
+      {
+        id: "rightDummydt",
+        name: "Right Dummy",
+        alignment: "rightToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "",
+      },
+      {
+        id: "ribbonDummyViewbt",
+        name: "View Dummy",
+        alignment: "ribbonToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "View",
+      },
+      {
+        id: "ribbonDummyInsertbt",
+        name: "Insert Dummy",
+        alignment: "ribbonToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "Insert",
+      },
+      {
+        id: "ribbonDummyAnnotatebt",
+        name: "Annotate Dummy",
+        alignment: "ribbonToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "Annotate",
+      },
+      {
+        id: "ribbonDummyRedactbt",
+        name: "Redact Dummy",
+        alignment: "ribbonToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "Redact",
+      },
+    ]);
   };
 
   deleteAnnotation = (event) => {
@@ -1154,6 +1204,9 @@ class App extends Component {
               </option>
               <option className="text-dark" value="getFilteredAnn">
                 Get Filtered Annotations
+              </option>
+              <option className="text-dark" value="changeButtonState">
+                Update Custom Button State
               </option>
             </select>
           </div>
