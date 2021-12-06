@@ -545,9 +545,60 @@ class App extends Component {
 
       case "changeButtonState":
         this.changeCustomButtonState();
+        break;
+      case "removeButton":
+        this.removeButton();
+        break;
       default:
         break;
     }
+  };
+
+  removeButton = () => {
+    this.eViewerObj.removeButtons([
+      {
+        id: "leftdummybt",
+        name: "Left Dummy",
+        alignment: "leftToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "",
+      },
+      {
+        id: "rightDummydt",
+        name: "Right Dummy",
+        alignment: "rightToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "",
+      },
+      {
+        id: "ribbonDummyViewbt",
+        name: "View Dummy",
+        alignment: "ribbonToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "View",
+      },
+      {
+        id: "ribbonDummyInsertbt",
+        name: "Insert Dummy",
+        alignment: "ribbonToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "Insert",
+      },
+      {
+        id: "ribbonDummyAnnotatebt",
+        name: "Annotate Dummy",
+        alignment: "ribbonToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "Annotate",
+      },
+      {
+        id: "ribbonDummyRedactbt",
+        name: "Redact Dummy",
+        alignment: "ribbonToolbar",
+        iconUrl: "assets/images/mst/custBtn1.png",
+        parent: "Redact",
+      },
+    ]);
   };
 
   changeCustomButtonState = () => {
@@ -1207,6 +1258,9 @@ class App extends Component {
               </option>
               <option className="text-dark" value="changeButtonState">
                 Update Custom Button State
+              </option>
+              <option className="text-dark" value="removeButton">
+                Remove Button
               </option>
             </select>
           </div>
