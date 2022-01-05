@@ -1,3 +1,5 @@
+import eViewerApp from "eviewerjs/js/eViewer7.js";
+
 window._docLoadComplete = function (docID, time) {
   try {
     console.log(
@@ -109,5 +111,27 @@ window._pageCopied = function (docID, pageNo) {
 window._pagePasted = function (docID, pageNo) {
   try {
     console.log("pagePasted: " + docID + " current pageNo: " + pageNo);
+  } catch (exp) {}
+};
+
+window._textSelected = function (response) {
+  try {
+    console.log(response);
+
+    // if (response !== undefined && response.coordinates !== undefined) {
+    //   let eViewerObj = new eViewerApp();
+    //   response.coordinates.forEach((element) => {
+    //     let pageRange = [];
+    //     pageRange.push(response.page);
+    //     let annotationData = {
+    //       X: element.x1,
+    //       Width: element.x2,
+    //       Y: element.y1,
+    //       Height: element.y3,
+    //     };
+    //     eViewerObj.annotationService.selectShape("highlight");
+    //     eViewerObj.annotationService.drawShapes(pageRange, annotationData);
+    //   });
+    // }
   } catch (exp) {}
 };

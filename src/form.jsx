@@ -50,7 +50,38 @@ class Form extends Component {
       saveMultipartPayLoadType: event.target.checked,
     });
   };
+
+  setViewerOptions = () => {
+    let eViewerObj = new eViewerApp();
+
+    let viewerPrefSrvc = eViewerObj.getViewerPreferenceService();
+    let preferencesPromise = viewerPrefSrvc.getUserPreferences(
+      "",
+      this.state.defaultPrefJSON
+    );
+    preferencesPromise.then((preferences) => {
+      viewerPrefSrvc.setUserPreferences(JSON.stringify(preferences), "");
+    });
+  };
+
+  prefJSONPath = (events) => {
+    let reader = new FileReader();
+    reader.readAsDataURL(events.target.files[0]);
+    reader.onload = (events) => {
+      let defPrefJSON = events.target.result;
+      if (events.target.result !== undefined) {
+        defPrefJSON = atob(
+          events.target.result.split("data:application/json;base64,")[1]
+        );
+      }
+      this.setState({
+        defaultPrefJSON: JSON.parse(defPrefJSON),
+      });
+    };
+  };
+
   handleSubmit = (event) => {
+    this.setViewerOptions();
     this.eViewerObj = new eViewerApp();
     let userName = this.state.userName;
     let savePayloadType = "application/json";
@@ -130,7 +161,19 @@ class Form extends Component {
                   placeholder="Authorization Token"
                 />
               </div>
-              {}
+              {
+                <div className="form-group">
+                  <div>User Preference JSON</div>
+                  <input
+                    type="file"
+                    className="form-control form-control-sm wrapword"
+                    id="prefJSON"
+                    name="prefJSONPath"
+                    onChange={this.prefJSONPath}
+                    required
+                  />
+                </div>
+              }
               {
                 <div className="form-group" style={{ display: "flex" }}>
                   <input
