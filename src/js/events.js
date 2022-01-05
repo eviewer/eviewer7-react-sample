@@ -1,4 +1,4 @@
-import eViewerApp from "eviewerjs/js/eViewer7.js";
+import eViewerApp from "@mstechusa/eviewer7/js/eViewer7";
 
 window._docLoadComplete = function (docID, time) {
   try {
