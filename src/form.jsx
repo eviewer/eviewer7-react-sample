@@ -10,6 +10,7 @@ class Form extends Component {
       viewerServerURL: "",
       serverUrl: "",
       savingEndpoint: "",
+      ocrEndpoint: "",
       userName: "",
       token: "",
       isViewerLoaded: false,
@@ -18,6 +19,7 @@ class Form extends Component {
       fitStyle: "default",
     };
   }
+
   handleInputviewerServerURL = (event) => {
     this.setState({
       viewerServerURL: event.target.value,
@@ -27,6 +29,11 @@ class Form extends Component {
   handleInputsavingEndpoint = (event) => {
     this.setState({
       savingEndpoint: event.target.value,
+    });
+  };
+  handleInputocrEndpoint = (event) => {
+    this.setState({
+      ocrEndpoint: event.target.value,
     });
   };
   handleInputuserName = (event) => {
@@ -57,7 +64,8 @@ class Form extends Component {
     let viewerPrefSrvc = eViewerObj.getViewerPreferenceService();
     let preferencesPromise = viewerPrefSrvc.getUserPreferences(
       "",
-      this.state.defaultPrefJSON
+      this.state.defaultPrefJSON,
+      this.state.defaultShortcutPrefJSON
     );
     preferencesPromise.then((preferences) => {
       viewerPrefSrvc.setUserPreferences(JSON.stringify(preferences), "");
@@ -76,6 +84,22 @@ class Form extends Component {
       }
       this.setState({
         defaultPrefJSON: JSON.parse(defPrefJSON),
+      });
+    };
+  };
+
+  shortcutPrefJSONPath = (events) => {
+    let reader = new FileReader();
+    reader.readAsDataURL(events.target.files[0]);
+    reader.onload = (events) => {
+      let defPrefJSON = events.target.result;
+      if (events.target.result !== undefined) {
+        defPrefJSON = atob(
+          events.target.result.split("data:application/json;base64,")[1]
+        );
+      }
+      this.setState({
+        defaultShortcutPrefJSON: JSON.parse(defPrefJSON),
       });
     };
   };
@@ -103,6 +127,7 @@ class Form extends Component {
       this.state.viewerServerURL,
       this.state.savingEndpoint,
       userName
+      this.state.ocrEndpoint
     );
 
     this.setState({
@@ -145,6 +170,16 @@ class Form extends Component {
                 <input
                   type="text"
                   className="form-control form-control-sm"
+                  name="ocrEndpoint"
+                  value={this.state.ocrEndpoint}
+                  onChange={this.handleInputocrEndpoint}
+                  placeholder="OCR End point"
+                />
+              </div>
+              <div className="form-group">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
                   name="userName"
                   value={this.state.userName}
                   onChange={this.handleInputuserName}
@@ -170,6 +205,19 @@ class Form extends Component {
                     id="prefJSON"
                     name="prefJSONPath"
                     onChange={this.prefJSONPath}
+                    required
+                  />
+                </div>
+              }
+              {
+                <div className="form-group">
+                  <div>Shortcut Preference JSON</div>
+                  <input
+                    type="file"
+                    className="form-control form-control-sm wrapword"
+                    id="shortcutPrefJSON"
+                    name="shortcutPrefJSONPath"
+                    onChange={this.shortcutPrefJSONPath}
                     required
                   />
                 </div>
