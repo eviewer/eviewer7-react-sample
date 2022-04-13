@@ -68,7 +68,7 @@ class Form extends Component {
       this.state.defaultShortcutPrefJSON
     );
     preferencesPromise.then((preferences) => {
-      viewerPrefSrvc.setUserPreferences(JSON.stringify(preferences), "");
+      viewerPrefSrvc.setUserPreferences(JSON.stringify(preferences.userPreferences), JSON.stringify(preferences.shortcutPreferences));
     });
   };
 
