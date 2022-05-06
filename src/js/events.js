@@ -1,10 +1,9 @@
 import eViewerApp from "@mstechusa/eviewer7/js/eViewer7";
 
-window._docLoadComplete = function (docID, time) {
+window._docLoadComplete = function (docInfo) {
   try {
-    console.log(
-      "docLoadComplete for documentID: " + docID + " in " + time + "ms"
-    );
+    console.log("docLoadComplete Info Below: ");
+    console.log(docInfo);
   } catch (exp) {}
 };
 

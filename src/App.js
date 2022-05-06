@@ -21,8 +21,15 @@ class App extends Component {
       value: "uploadDocument",
       defaultDisabled: false,
       isUploadDivShow: false,
+      isGetDocumentInfo: false,
+      isGetPageInfo: false,
+      isGetCurrentScale: false,
+      isGetCurrentRotation: false,
       isAddButtonShow: false,
       isRemoveButtonShow: false,
+      isFilterPagesShow: false,
+      isShowOnlyPagesShow: false,
+      isHideOnlyPagesShow: false,
       isUpdateButtonShow: false,
       isgotoPageDivShow: false,
       isinsertDivShow: false,
@@ -30,10 +37,19 @@ class App extends Component {
       issearchTextDivShow: false,
       isExportDivShow: false,
     };
+
+    this.state = { filterJSON: "" };
+    this.state = { showHideOnlyPagesFilter: "" };
+
+    this.state = { startPage: 0, endPage: 0 };
     this.state = {
       docURLs: "",
       annURLs: "",
       // userName: "",
+    };
+    this.state = {
+      docId: "",
+      pageRange: "",
     };
     this.state = {
       doctype: "",
@@ -52,6 +68,7 @@ class App extends Component {
     };
 
     this.state = { landingPgNo: 1 };
+    this.state = { hidePages: "" };
 
     this.selectedAnnotation = {
       name: "",
@@ -87,6 +104,13 @@ class App extends Component {
     await import("@mstechusa/eviewer7/js/events");
 
 
+    setTimeout(() => {
+      // this.setViewerOptions();
+      if (this.selectedAnnotation.stampDetailsArray.length === 0) {
+        // Not required but had to do to initialize the internal arrays o eviewer for use case for QA whrer they upload documents with upload component eithout api's.
+        this.eViewerObj.annotationService.getStamps();
+      }
+    }, 100);
   }
   submitUploadDetail = (event) => {
     if (this.eViewerObj === null) {
@@ -127,6 +151,7 @@ class App extends Component {
           repoType: "filesystem",
           password: "",
           landingPage: this.state.landingPgNo,
+          pageFilters: this.getPageVisibility(),
         }
       )
       .then((response) => {
@@ -144,6 +169,50 @@ class App extends Component {
     this.setState({
       isShowDocNavigators: true,
     });
+  };
+
+  getPageVisibility = () => {
+    if (this.state.hidePages.length === 0) {
+      return [];
+    }
+    const pagesToHide = this.state.hidePages.split(",");
+    const response = [];
+    for (const pg of pagesToHide) {
+      response.push({ pageNo: parseInt(pg, 10), visible: false });
+    }
+    return response;
+  };
+
+  submitGetDocumentInfo = (event) => {
+    this.eViewerObj.documentService
+      .getDocumentInfo(this.state.docId)
+      .then((response) => {
+        console.log(response);
+      });
+  };
+
+  submitGetPageInfo = (event) => {
+    this.eViewerObj.documentService
+      .getPageInfo(this.state.docId, this.state.pageRange)
+      .then((response) => {
+        console.log(response);
+      });
+  };
+
+  submitGetCurrentScale = (event) => {
+    this.eViewerObj.editingService
+      .getCurrentScale(this.state.docId)
+      .then((response) => {
+        console.log(response);
+      });
+  };
+
+  submitGetCurrentRotation = (event) => {
+    this.eViewerObj.editingService
+      .getCurrentRotation(this.state.docId, parseInt(this.state.pageNO, 10))
+      .then((response) => {
+        console.log(response);
+      });
   };
 
   nextDoc = () => {
@@ -222,7 +291,11 @@ class App extends Component {
       this.eViewerObj = new eViewerApp();
     }
     let documentSrvc = this.eViewerObj.getDocumentService();
-    documentSrvc.insertDocument(this.state.file).then((response) => {
+    documentSrvc
+      .insertDocument(this.state.file, {
+        pageFilters: this.getPageVisibility(),
+      })
+      .then((response) => {
       this.setState({ defaultDisabled: true });
       console.log("insertDocument: " + response);
     });
@@ -251,12 +324,42 @@ class App extends Component {
       formName: "export",
       selectedOption: this.state.doctype,
       withAnn: "false",
-      startPageExport: 0,
-      endPageExport: 0,
-      withwatermark: true,
+      startPageExport: this.state.startPage,
+      endPageExport: this.state.endPage,
+      withwatermark: true, // nilesh for Generic_eVewer7_2208 APINPM Watermark All 2 2
+      asStream: true,
     };
-    this.eViewerObj.editingService.exportDocument(exportData);
+    this.eViewerObj.editingService
+      .exportDocument(exportData)
+      .then((fileData) => {
+        this.exportFileData(this.selectedOption, fileData, this.state.DocName);
+      });
     this.disableAllDiv();
+  };
+
+  exportFileData = (mimeType, view, docName) => {
+    let file = null;
+    if (navigator.msSaveBlob) {
+      const downloadType = mimeType === "image/tiff" ? "tiff" : "pdf";
+      file = new Blob([view], { type: downloadType });
+      navigator.msSaveOrOpenBlob(file, docName + "." + downloadType);
+    } else {
+      const downloadType =
+        mimeType === "image/tiff" ? "image/tiff" : "application/pdf";
+      file = new Blob([view], { type: downloadType });
+
+      const data = window.URL.createObjectURL(file);
+      const link = document.createElement("a");
+      document.body.appendChild(link);
+      link.href = data;
+      link.download = docName;
+      link.click();
+
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(data);
+      }, 200);
+    }
   };
 
   setViewerOptions = () => {
@@ -280,6 +383,10 @@ class App extends Component {
   disableAllDiv = () => {
     this.setState({
       isUploadDivShow: false,
+      isGetDocumentInfo: false,
+      isGetPageInfo: false,
+      isGetCurrentScale: false,
+      isGetCurrentRotation: false,
       isgotoPageDivShow: false,
       isinsertDivShow: false,
       isappendDivShow: false,
@@ -288,6 +395,9 @@ class App extends Component {
       isShowDocNavigators: false,
       isAddButtonShow: false,
       isRemoveButtonShow: false,
+      isFilterPagesShow: false,
+      isShowOnlyPagesShow: false,
+      isHideOnlyPagesShow: false,
       isUpdateButtonShow: false,
     });
   };
@@ -296,12 +406,24 @@ class App extends Component {
     this.setState({ docURLs: events.target.value });
   };
 
+  docIdValue = (events) => {
+    this.setState({ docId: events.target.value });
+  };
+
+  pageRangeValue = (events) => {
+    this.setState({ pageRange: events.target.value });
+  };
+
   landingPageValue = (events) => {
     let no = parseInt(events.target.value, 10);
     if (isNaN(no)) {
       no = "";
     }
     this.setState({ landingPgNo: no });
+  };
+
+  hidePagesValue = (events) => {
+    this.setState({ hidePages: events.target.value });
   };
 
   annURLsValue = (events) => {
@@ -336,6 +458,14 @@ class App extends Component {
     this.setState({ btnId: events.target.value });
   };
 
+  onChangeFilterJSON = (events) => {
+    this.setState({ filterJSON: events.target.value });
+  };
+
+  onChangeShowHideOnlyPagesFilter = (events) => {
+    this.setState({ showHideOnlyPagesFilter: events.target.value });
+  };
+
   searchText = (events) => {
     this.setState({ textSearch: events.target.value });
   };
@@ -346,6 +476,14 @@ class App extends Component {
 
   pageOptionValue = (events) => {
     this.setState({ pageOption: events.target.value });
+  };
+
+  onStartPage = (events) => {
+    this.setState({ startPage: events.target.value });
+  };
+
+  onEndPage = (events) => {
+    this.setState({ endPage: events.target.value });
   };
 
   DocNameValue = (events) => {
@@ -393,7 +531,7 @@ class App extends Component {
         break;
       case "printDocument":
         let printData = {
-          pageOption: "allDocuments", //"currentPage",
+          pageOption: "currentDocument", //"currentPage",
           withannotation: "false",
           startPage: 0,
           endPage: 0,
@@ -481,6 +619,24 @@ class App extends Component {
         eViewerObj.documentService.getActiveDocument().then((response) => {
           console.log("getActiveDoc: " + response);
         });
+        break;
+      case "getDocumentInfo":
+        this.setState({ isGetDocumentInfo: true });
+        break;
+      case "getActiveDocumentInfo":
+        eViewerObj.documentService.getActiveDocumentInfo().then((response) => {
+          console.log(response);
+        });
+
+        break;
+      case "getPageInfo":
+        this.setState({ isGetPageInfo: true });
+        break;
+      case "getCurrentScale":
+        this.setState({ isGetCurrentScale: true });
+        break;
+      case "getCurrentRotation":
+        this.setState({ isGetCurrentRotation: true });
         break;
       case "saveDoc":
         eViewerObj.documentService.saveDocument();
@@ -630,6 +786,15 @@ class App extends Component {
       case "removeButton":
         this.setState({ isRemoveButtonShow: true });
         break;
+      case "filterPages":
+        this.setState({ isFilterPagesShow: true });
+        break;
+      case "showOnlyPages":
+        this.setState({ isShowOnlyPagesShow: true });
+        break;
+      case "hideOnlyPages":
+        this.setState({ isHideOnlyPagesShow: true });
+        break;
       case "addButton":
         this.setState({ isAddButtonShow: true });
         break;
@@ -679,6 +844,31 @@ class App extends Component {
         placementIndex: parseInt(this.state.btnPlacementIndex),
       },
     ]);
+  };
+
+  submitFilterPages = () => {
+    this.eViewerObj.documentService.filterPages(
+      this.state.docId,
+      JSON.parse(this.state.filterJSON)
+    );
+  };
+
+  submitShowOnlyFilter = () => {
+    const inputPages = this.state.showHideOnlyPagesFilter.split(",");
+    const pages = [];
+    for (const inputPg of inputPages) {
+      pages.push(parseInt(inputPg, 10));
+    }
+    this.eViewerObj.documentService.showOnlyPages(this.state.docId, pages);
+  };
+
+  submitHideOnlyFilter = () => {
+    const inputPages = this.state.showHideOnlyPagesFilter.split(",");
+    const pages = [];
+    for (const inputPg of inputPages) {
+      pages.push(parseInt(inputPg, 10));
+    }
+    this.eViewerObj.documentService.hideOnlyPages(this.state.docId, pages);
   };
 
   submitUpdateButton = () => {
@@ -1248,6 +1438,21 @@ class App extends Component {
               <option className="text-dark" value="getActiveDoc">
                 GetActiveDoc
               </option>
+              <option className="text-dark" value="getDocumentInfo">
+                GetDocumentInfo
+              </option>
+              <option className="text-dark" value="getActiveDocumentInfo">
+                GetActiveDocumentInfo
+              </option>
+              <option className="text-dark" value="getPageInfo">
+                GetPageInfo
+              </option>
+              <option className="text-dark" value="getCurrentScale">
+                GetCurrentScale
+              </option>
+              <option className="text-dark" value="getCurrentRotation">
+                GetCurrentRotation
+              </option>
               <option className="text-dark" value="closeAllDoc">
                 CloseAllDoc
               </option>
@@ -1355,6 +1560,15 @@ class App extends Component {
               <option className="text-dark" value="removeButton">
                 Remove Button
               </option>
+              <option className="text-dark" value="filterPages">
+                Filter Pages
+              </option>
+              <option className="text-dark" value="showOnlyPages">
+                Show Only Pages
+              </option>
+              <option className="text-dark" value="hideOnlyPages">
+                Hide Only Pages
+              </option>
             </select>
           </div>
           {this.state.isUploadDivShow === true ? (
@@ -1395,12 +1609,180 @@ class App extends Component {
                             placeholder="Landing Page"
                           />
                         </div>
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="hidePages"
+                            onChange={this.hidePagesValue}
+                            value={this.state.hidePages}
+                            placeholder="Hide Pages"
+                          />
+                        </div>
                       </div>
                       <button
                         className="btn btn-primary"
                         onClick={this.submitUploadDetail}
                       >
                         upload
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isGetDocumentInfo === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="docId"
+                            onChange={this.docIdValue}
+                            value={this.state.docId}
+                            placeholder="Document ID"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitGetDocumentInfo}
+                      >
+                        Submit
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isGetPageInfo === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="docId"
+                            onChange={this.docIdValue}
+                            value={this.state.docId}
+                            placeholder="Document ID"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="pageRange"
+                            onChange={this.pageRangeValue}
+                            value={this.state.pageRange}
+                            placeholder="1"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitGetPageInfo}
+                      >
+                        Submit
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isGetCurrentScale === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="docId"
+                            onChange={this.docIdValue}
+                            value={this.state.docId}
+                            placeholder="Document ID"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitGetCurrentScale}
+                      >
+                        Submit
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isGetCurrentRotation === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="docId"
+                            onChange={this.docIdValue}
+                            value={this.state.docId}
+                            placeholder="Document ID"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="pageNO"
+                            onChange={this.pageNoValue}
+                            value={this.state.pageNO}
+                            placeholder="Enter Page No"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitGetCurrentRotation}
+                      >
+                        Submit
                       </button>
                       &nbsp;
                     </div>
@@ -1516,6 +1898,16 @@ class App extends Component {
                           onChange={this.actualFilePath}
                           required
                         />
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="hidePages"
+                            onChange={this.hidePagesValue}
+                            value={this.state.hidePages}
+                            placeholder="Hide Pages"
+                          />
+                        </div>
                       </div>
                       <button type="submit" className="btn btn-primary">
                         Insert
@@ -1590,8 +1982,28 @@ class App extends Component {
                             value={this.state.pageOption}
                             className="form-control form-control-sm"
                             name="pageOption"
-                            placeholder="currentPage or allDocuments"
+                            placeholder="currentPage or currentDocument or pageRange or allDocuments"
                             required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            onChange={this.onStartPage}
+                            value={this.state.startPage}
+                            className="form-control form-control-sm"
+                            name="startPage"
+                            placeholder="Start Page"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            onChange={this.onEndPage}
+                            value={this.state.endPage}
+                            className="form-control form-control-sm"
+                            name="startPage"
+                            placeholder="Start Page"
                           />
                         </div>
                         <div>
@@ -2602,6 +3014,16 @@ class App extends Component {
                           placeholder="button ID"
                         />
                       </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          onChange={this.onChangeAlignment}
+                          value={this.state.btnAlignment}
+                          name="btnAlignment"
+                          placeholder="leftToolbar or rightToolbar or ribbonToolbar"
+                        />
+                      </div>
                     </div>
                     <button
                       type="submit"
@@ -2609,6 +3031,135 @@ class App extends Component {
                       onClick={this.submitRemoveButton}
                     >
                       Remove Button
+                    </button>
+                    &nbsp;
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.isFilterPagesShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="form-horizontal">
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="docId"
+                          onChange={this.docIdValue}
+                          value={this.state.docId}
+                          placeholder="Document ID"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          onChange={this.onChangeFilterJSON}
+                          value={this.state.filterJSON}
+                          name="filterJSON"
+                          placeholder='[{"pageNo": 1, "visible": false}]'
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      onClick={this.submitFilterPages}
+                    >
+                      Apply Page Filter
+                    </button>
+                    &nbsp;
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.isShowOnlyPagesShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="form-horizontal">
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="docId"
+                          onChange={this.docIdValue}
+                          value={this.state.docId}
+                          placeholder="Document ID"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          onChange={this.onChangeShowHideOnlyPagesFilter}
+                          value={this.state.showHideOnlyPagesFilter}
+                          name="showHideOnlyPagesFilter"
+                          placeholder="1,2,3"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      onClick={this.submitShowOnlyFilter}
+                    >
+                      Apply Page Filter
+                    </button>
+                    &nbsp;
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.isHideOnlyPagesShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="form-horizontal">
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="docId"
+                          onChange={this.docIdValue}
+                          value={this.state.docId}
+                          placeholder="Document ID"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          onChange={this.onChangeShowHideOnlyPagesFilter}
+                          value={this.state.showHideOnlyPagesFilter}
+                          name="showHideOnlyPagesFilter"
+                          placeholder="1,2,3"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      onClick={this.submitHideOnlyFilter}
+                    >
+                      Hide Only Pages
                     </button>
                     &nbsp;
                   </div>
