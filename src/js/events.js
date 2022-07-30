@@ -21,9 +21,9 @@ window._customButtonClicked = function (operation) {
   } catch (exp) {}
 };
 
-window._docSaveComplete = function (docID, annotationData) {
+window._docSaveComplete = function (docID, response) {
   try {
-    console.log("docSaveComplete: " + docID + " annData: " + annotationData);
+    console.log("docSaveComplete: " + docID + " response: " + response);
   } catch (exp) {}
 };
 
@@ -117,20 +117,56 @@ window._textSelected = function (response) {
   try {
     console.log(response);
 
-    // if (response !== undefined && response.coordinates !== undefined) {
-    //   let eViewerObj = new eViewerApp();
-    //   response.coordinates.forEach((element) => {
-    //     let pageRange = [];
-    //     pageRange.push(response.page);
-    //     let annotationData = {
-    //       X: element.x1,
-    //       Width: element.x2,
-    //       Y: element.y1,
-    //       Height: element.y3,
-    //     };
-    //     eViewerObj.annotationService.selectShape("highlight");
-    //     eViewerObj.annotationService.drawShapes(pageRange, annotationData);
-    //   });
-    // }
+    /*if (response !== undefined && response.coordinates !== undefined) {
+      let eViewerObj = new eViewerApp();
+      response.coordinates.forEach((element) => {
+        let pageRange = [];
+        pageRange.push(response.page);
+        let annotationData = {
+          X: element.x1,
+          Width: element.x2,
+          Y: element.y1,
+          Height: element.y3,
+        };
+        eViewerObj.annotationService.selectShape("highlight");
+        eViewerObj.annotationService.drawShapes(pageRange, annotationData);
+      });
+    }*/
+  } catch (exp) {}
+};
+
+window._newCertificate = function (certificate) {
+  try {
+    /*
+	{ userName: "", certificate: "BASE64 certificate", commonName: "", expiry: "", issuedBy: "", password: "" }
+	*/
+    console.log(certificate);
+  } catch (exp) {}
+};
+
+window._newAppearance = function (appearance) {
+  try {
+    /*
+	{ userName: "", appearanceImg: "BASE64 image" }
+	*/
+    console.log(appearance);
+  } catch (exp) {}
+};
+
+window._preferenceUpdate = function (preferenceData) {
+  try {
+    /*
+    { userName: "", userPreference: "", annotationPreference: "", customStamps: ""}
+    */
+    console.log(preferenceData);
+  } catch (exp) {}
+};
+
+window._zoomChange = function (zoomData) {
+  try {
+    /*
+      { clientDocID: "", docID: "", scale: "", zoomPreset: ""}
+      */
+    console.log(zoomData);
   } catch (exp) {}
 };

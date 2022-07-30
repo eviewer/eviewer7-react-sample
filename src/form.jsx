@@ -59,11 +59,10 @@ class Form extends Component {
   };
 
   setViewerOptions = () => {
-    let eViewerObj = new eViewerApp();
+    let eViewerObj = new eViewerApp("Administrator");
 
     let viewerPrefSrvc = eViewerObj.getViewerPreferenceService();
     let preferencesPromise = viewerPrefSrvc.getUserPreferences(
-      "",
       this.state.defaultPrefJSON,
       this.state.defaultShortcutPrefJSON
     );
@@ -106,8 +105,7 @@ class Form extends Component {
 
   handleSubmit = (event) => {
     this.setViewerOptions();
-    this.eViewerObj = new eViewerApp();
-    let userName = this.state.userName;
+    this.eViewerObj = new eViewerApp(this.state.userName);
     let savePayloadType = "application/json";
 
     if (this.state.saveMultipartPayLoadType === true) {
@@ -122,11 +120,13 @@ class Form extends Component {
       savePayLoadType: savePayloadType,
     };
 
+    let sigSrvc = this.eViewerObj.getSignatureService();
+    sigSrvc.setAvailableAppearances(this.state.appearanceList);
+    sigSrvc.setAvailableCertificates(this.state.savedCertificates);
     this.eViewerObj.setDocumentEndPointOptions(
       options,
       this.state.viewerServerURL,
       this.state.savingEndpoint,
-      userName
       this.state.ocrEndpoint
     );
 
