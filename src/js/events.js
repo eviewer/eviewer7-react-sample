@@ -170,3 +170,9 @@ window._zoomChange = function (zoomData) {
     console.log(zoomData);
   } catch (exp) {}
 };
+
+window._onContextMenu = function (info) {
+  try {
+    console.log(info);
+  } catch (exp) {}
+}

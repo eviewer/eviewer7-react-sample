@@ -93,7 +93,22 @@ class App extends Component {
   async loadViewer() {
     this.eViewerObj = new eViewerApp(this.props.userName);
 
-    this.eViewerObj.loadViewer("eviewer", null, null, "bestFit").then(() => {
+    const options = {
+      contextMenuOptions: {
+        overrideContextMenus: false,
+        location: [
+          "documentView",
+          "pageThumbnails",
+          "docThumbnails",
+          "toolbar",
+          "docTab",
+        ],
+      },
+    };
+
+    this.eViewerObj
+      .loadViewer("eviewer", null, null, "bestFit", options)
+      .then(() => {
       console.log("loading viewer successfully");
       this.eViewerObj.registerLicense(this.licenseKey);
     });
@@ -553,8 +568,7 @@ class App extends Component {
         break;
       case "getPageCount":
         this.eViewerObj.documentService.getPageCount("").then((response) => {
-          console.log("getPageCount: ");
-          console.log(response);
+          console.log("getPageCount: " + JSON.stringify(response));
         });
 
         break;
@@ -585,36 +599,31 @@ class App extends Component {
 
       case "nextPage":
         this.eViewerObj.documentService.nextPage().then((response) => {
-          console.log("nextpage: ");
-          console.log(response);
+          console.log("nextpage: " + response);
         });
 
         break;
       case "lastPage":
         this.eViewerObj.documentService.lastPage().then((response) => {
-          console.log("lastPage: ");
-          console.log(response);
+          console.log("lastPage: " + response);
         });
 
         break;
       case "prevPage":
         this.eViewerObj.documentService.prevPage().then((response) => {
-          console.log("prevPage: ");
-          console.log(response);
+          console.log("prevPage: " + response);
         });
 
         break;
 
       case "firstPage":
         this.eViewerObj.documentService.firstPage().then((response) => {
-          console.log("firstPage: ");
-          console.log(response);
+          console.log("firstPage: " + response);
         });
         break;
       case "getOpenDoc":
         this.eViewerObj.documentService.getOpenDocuments().then((response) => {
-          console.log("getOpenDoc: ");
-          console.log(response);
+          console.log("getOpenDoc: " + JSON.stringify(response));
         });
 
         break;
@@ -622,8 +631,7 @@ class App extends Component {
       case "closeFile":
         this.eViewerObj.documentService.closeDocument("").then((response) => {
           this.setState({ defaultDisabled: false });
-          console.log("closeFile: ");
-          console.log(response);
+          console.log("closeFile: " + response);
         });
 
         break;
@@ -632,8 +640,7 @@ class App extends Component {
           .closeAllDocuments("")
           .then((response) => {
           this.setState({ defaultDisabled: false });
-            console.log("closeAllDoc: ");
-            console.log(response);
+            console.log("closeAllDoc: " + response);
         });
 
         break;
@@ -964,6 +971,10 @@ class App extends Component {
       FontColor: event.target[12].value,
       // image: "BASE64STRING or relative path to image"
     };
+
+    if (event.target[9].value === "") {
+      options.opacity = undefined;
+    }
     if (
       options.borderWidth === 0 &&
       options.borderColor === "" &&
@@ -974,9 +985,6 @@ class App extends Component {
       options.FontColor === ""
     ) {
       options = undefined;
-    }
-    if(event.target[9].value === ""){
-      options.opacity = undefined;
     }
 
     this.eViewerObj = null;

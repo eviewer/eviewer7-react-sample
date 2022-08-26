@@ -17,6 +17,18 @@ class Form extends Component {
       hideToolBar: false,
       saveMultipartPayLoadType: false,
       fitStyle: "default",
+      appearanceList: [
+        "BASE64 IMAGE GOES HERE",
+      ],
+      savedCertificates: [
+        {
+          issuedBy: "",
+          expiry: "",
+          certificate:
+            "BASE64 CERTIFICATE STREAM GOES HERE",
+          password: "BASE64 ENCODED PASSWORD GOES HERE",
+        },
+      ],
     };
   }
 
