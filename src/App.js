@@ -37,6 +37,7 @@ class App extends Component {
       isappendDivShow: false,
       issearchTextDivShow: false,
       isExportDivShow: false,
+      isInvertPageDivShow: false,
     };
 
     this.state = { filterJSON: "" };
@@ -95,7 +96,7 @@ class App extends Component {
 
     const options = {
       contextMenuOptions: {
-        overrideContextMenus: false,
+        overrideContextMenus: true,
         location: [
           "documentView",
           "pageThumbnails",
@@ -295,6 +296,15 @@ class App extends Component {
     this.disableAllDiv();
   };
 
+  submitInvertPagesDetail = () => {
+    this.eViewerObj.documentService
+      .invertPages(this.state.pageNO.split(","))
+      .then((response) => {
+        console.log("invertPages: " + response);
+      });
+    this.disableAllDiv();
+  };
+
   submitTextDetail = () => {
     this.eViewerObj.documentService
       .searchText(this.state.textSearch)
@@ -414,6 +424,7 @@ class App extends Component {
       isGetCurrentScale: false,
       isGetCurrentRotation: false,
       isgotoPageDivShow: false,
+      isInvertPageDivShow: false,
       isinsertDivShow: false,
       isappendDivShow: false,
       issearchTextDivShow: false,
@@ -751,6 +762,10 @@ class App extends Component {
         this.eViewerObj.editingService.pastePage().then((response) => {
           console.log("pastePage: " + response);
         });
+        break;
+
+      case "invertPages":
+        this.setState({ isInvertPageDivShow: true });
         break;
       case "switchThumbnail":
         this.eViewerObj.toggleThumbnail().then((response) => {
@@ -1202,7 +1217,9 @@ class App extends Component {
     ) {
       options.opacity = undefined;
     }
-
+    if (this.selectedAnnotation.name === "stickynote") {
+      options.opacity = undefined;
+    }
     if (
       (options.borderWidth === 0 || options.borderWidth === undefined) &&
       (options.borderColor === "" || options.borderColor === undefined) &&
@@ -1536,6 +1553,9 @@ class App extends Component {
               </option>
               <option className="text-dark" value="pastePage">
                 PastePage
+              </option>
+              <option className="text-dark" value="invertPages">
+                InvertPages
               </option>
               {}
               <option className="text-dark" value="hideAnnotation">
@@ -1878,6 +1898,40 @@ class App extends Component {
                       <button
                         className="btn btn-primary"
                         onClick={this.submitGotoPageDetail}
+                      >
+                        Go
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isInvertPageDivShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            onChange={this.pageNoValue}
+                            value={this.state.pageNO}
+                            className="form-control form-control-sm"
+                            name="pageNO"
+                            placeholder="Enter Page Range"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitInvertPagesDetail}
                       >
                         Go
                       </button>
