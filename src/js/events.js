@@ -144,6 +144,12 @@ window._newCertificate = function (certificate) {
   } catch (exp) {}
 };
 
+window._updateDefaultCertificate = function (certificate) {
+  try {
+    console.log(certificate);
+  } catch (exp) {}
+};
+
 window._newAppearance = function (appearance) {
   try {
     /*

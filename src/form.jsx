@@ -11,6 +11,7 @@ class Form extends Component {
       serverUrl: "",
       savingEndpoint: "",
       ocrEndpoint: "",
+      userType: "",
       userName: "",
       token: "",
       isViewerLoaded: false,
@@ -46,6 +47,11 @@ class Form extends Component {
   handleInputocrEndpoint = (event) => {
     this.setState({
       ocrEndpoint: event.target.value,
+    });
+  };
+  handleUserType = (event) => {
+    this.setState({
+      userType: event.target.value,
     });
   };
   handleInputuserName = (event) => {
@@ -132,9 +138,14 @@ class Form extends Component {
       savePayLoadType: savePayloadType,
     };
 
+    if (this.state.userType === ""){
+      this.state.userType = "NORMAL";
+    }
+
     let sigSrvc = this.eViewerObj.getSignatureService();
     sigSrvc.setAvailableAppearances(this.state.appearanceList);
     sigSrvc.setAvailableCertificates(this.state.savedCertificates);
+    this.eViewerObj.setUserType(this.state.userType);
     this.eViewerObj.setDocumentEndPointOptions(
       options,
       this.state.viewerServerURL,
@@ -187,6 +198,26 @@ class Form extends Component {
                   onChange={this.handleInputocrEndpoint}
                   placeholder="OCR End point"
                 />
+              </div>
+              <div className="form-group">
+                <select
+                  className="form-control form-control-sm"
+                  name="selectedOption"
+                  onChange={this.handleUserType}
+                >
+                  <option className="" defaultValue="">
+                    ---Select User Type---
+                  </option>
+                  <option className="text-dark" value="NORMAL">
+                    NORMAL
+                  </option>
+                  <option className="text-dark" value="SUPER_USER">
+                    SUPER_USER
+                  </option>
+                  <option className="text-dark" value="VIEW_ONLY">
+                    VIEW_ONLY
+                  </option>
+                </select>
               </div>
               <div className="form-group">
                 <input

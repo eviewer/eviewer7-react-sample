@@ -38,6 +38,8 @@ class App extends Component {
       issearchTextDivShow: false,
       isExportDivShow: false,
       isInvertPageDivShow: false,
+      isSetCustomStampsShow: false,
+      isLinkAnnotationShow: false
     };
 
     this.state = { filterJSON: "" };
@@ -305,6 +307,15 @@ class App extends Component {
     this.disableAllDiv();
   };
 
+  submitSetCustomStamps = () => {
+    this.eViewerObj.annotationService
+      .setCustomStamps(this.state.pageNO)
+      .then((response) => {
+        console.log("setCustomStamps: " + response);
+      });
+    this.disableAllDiv();
+  };
+
   submitTextDetail = () => {
     this.eViewerObj.documentService
       .searchText(this.state.textSearch)
@@ -425,6 +436,8 @@ class App extends Component {
       isGetCurrentRotation: false,
       isgotoPageDivShow: false,
       isInvertPageDivShow: false,
+      isSetCustomStampsShow: false,
+      isLinkAnnotationShow: false,
       isinsertDivShow: false,
       isappendDivShow: false,
       issearchTextDivShow: false,
@@ -543,6 +556,8 @@ class App extends Component {
     this.setState({ getAllAnnDiv: false });
     this.setState({ getAnnDetailsDiv: false });
     this.setState({ getFilteredAnnDiv: false });
+    this.setState({ linkUrl: false });
+    this.setState({ linkPageNo: false });
   };
 
   chooseOption = (event) => {
@@ -766,6 +781,12 @@ class App extends Component {
 
       case "invertPages":
         this.setState({ isInvertPageDivShow: true });
+        break;
+      case "setCustomStamps":
+        this.setState({ isSetCustomStampsShow: true });
+        break;
+      case "linkAnnotation":
+        this.setState({ isLinkAnnotationShow: true });
         break;
       case "switchThumbnail":
         this.eViewerObj.toggleThumbnail().then((response) => {
@@ -1102,6 +1123,49 @@ class App extends Component {
     }
   };
 
+  chooseLink = (event) => {
+    const linkValue = event.target.value;
+    switch(linkValue){
+      case "url":
+        this.setState({ linkUrl: true });
+        this.setState({ linkPageNo: false });
+        break;
+      case "pageNo":
+        this.setState({ linkUrl: false });
+        this.setState({ linkPageNo: true });
+        break;
+      default :
+        this.setState({ linkUrl: false });
+        this.setState({ linkPageNo: false });
+        break;
+    }
+  }
+
+  submitLinkAnnotation = (event) => {
+    this.eViewerObj = null;
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+
+    const annId = document.querySelector('[name="ANNOTATIONID"]').value;
+    const URL = document.querySelector('[name="LINKURL"]')?.value;
+    const pageNo = document.querySelector('[name="LINKPAGENO"]')?.value;
+
+    const options = {
+      url: URL,
+      pageno: pageNo
+    };
+
+    this.eViewerObj.annotationService.drawLinkAnnotation(
+      annId,
+      options
+    );
+
+    this.disableAllDiv();
+    this.setState({ linkUrl: false });
+    this.setState({ linkPageNo: false });
+  }
+
   MultiPageAnnotation = (event) => {
     this.eViewerObj = null;
     if (this.eViewerObj === null) {
@@ -1167,7 +1231,8 @@ class App extends Component {
       options.opacity = +event.target[7].value;
     } else if (
       this.selectedAnnotation.name === "circle" ||
-      this.selectedAnnotation.name === "rectangle"
+      this.selectedAnnotation.name === "rectangle" ||
+      this.selectedAnnotation.name === "redaction"
     ) {
       options.borderWidth = +event.target[5].value;
       options.borderColor = event.target[6].value;
@@ -1206,7 +1271,8 @@ class App extends Component {
       (this.selectedAnnotation.name === "line" ||
         this.selectedAnnotation.name === "arrow" ||
         this.selectedAnnotation.name === "circle" ||
-        this.selectedAnnotation.name === "rectangle") &&
+        this.selectedAnnotation.name === "rectangle" ||
+        this.selectedAnnotation.name === "redaction") &&
       event.target[7].value === ""
     ) {
       options.opacity = undefined;
@@ -1634,6 +1700,12 @@ class App extends Component {
               <option className="text-dark" value="hideOnlyPages">
                 Hide Only Pages
               </option>
+              <option className="text-dark" value="setCustomStamps">
+                Set Custom Stamps
+              </option>
+              <option className="text-dark" value="linkAnnotation">
+                Link Annotation
+              </option>
             </select>
           </div>
           {this.state.isUploadDivShow === true ? (
@@ -1934,6 +2006,119 @@ class App extends Component {
                         onClick={this.submitInvertPagesDetail}
                       >
                         Go
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isSetCustomStampsShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            onChange={this.pageNoValue}
+                            value={this.state.pageNO}
+                            className="form-control form-control-sm"
+                            name="pageNO"
+                            placeholder="Enter Custom Stamps JSON"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitSetCustomStamps}
+                      >
+                        Go
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isLinkAnnotationShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="ANNOTATIONID"
+                            placeholder="Annotation Id"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <div>
+                          <select
+                            className="custom-select"
+                            name="selectLinkType"
+                            onChange={this.chooseLink}
+                          >
+                            <option className="" defaultValue="">Select To Link With</option>
+                            <option className="text-dark" value="url">LINK URL</option>
+                            <option className="text-dark" value="pageNo">LINK PAGE NUMBER</option>
+                          </select>
+                        </div>
+                      </div>
+                      {this.state.linkUrl === true ? (
+                        <>
+                          <div className="form-group">
+                            <div>
+                              <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              name="LINKURL"
+                              placeholder="Enter URL"
+                              required
+                              />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        ""
+                      )}
+                      {this.state.linkPageNo === true ? (
+                        <>
+                          <div className="form-group">
+                            <div>
+                              <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              name="LINKPAGENO"
+                              placeholder="Enter PageNo"
+                              required
+                              />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        ""
+                      )}
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitLinkAnnotation}
+                      >
+                        submit
                       </button>
                       &nbsp;
                     </div>
@@ -2388,6 +2573,9 @@ class App extends Component {
                     <option className="text-dark" value="imageStamp">
                       IMAGE STAMP
                     </option>
+                    <option className="text-dark" value="redaction">
+                      REDACTION
+                    </option>
                   </select>
                 </div>
               </div>
@@ -2474,7 +2662,8 @@ class App extends Component {
                         </>
                       )}
                       {(this.selectedAnnotation.name === "circle" ||
-                        this.selectedAnnotation.name === "rectangle") && (
+                        this.selectedAnnotation.name === "rectangle" ||
+                        this.selectedAnnotation.name === "redaction") && (
                         <>
                           <input
                             type="text"
