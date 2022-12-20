@@ -361,6 +361,18 @@ class App extends Component {
     }
 
     this.eViewerObj.setUserName(this.props.userName);
+    if (
+      this.state.startPage === undefined &&
+      this.state.endPage === undefined
+    ) {
+      this.state.startPage = "";
+      this.state.endPage = "";
+    }
+
+    let withComments = true;
+    if (this.state.includeComments === "false") {
+      withComments = false;
+    }
     let exportData = {
       docName: this.state.DocName,
       pageOption: this.state.pageOption,
@@ -370,6 +382,7 @@ class App extends Component {
       endPageExport: this.state.endPage,
       withwatermark: true, // nilesh for Generic_eVewer7_2208 APINPM Watermark All 2 2
       asStream: true,
+      withComments: withComments,
     };
     let fileType = this.state.doctype;
     this.eViewerObj.editingService
@@ -538,6 +551,10 @@ class App extends Component {
 
   DocNameValue = (events) => {
     this.setState({ DocName: events.target.value });
+  };
+
+  IncludeCommentsValue = (events) => {
+    this.setState({ includeComments: events.target.value });
   };
 
   setAnnDiv = () => {
@@ -780,6 +797,7 @@ class App extends Component {
         break;
 
       case "invertPages":
+        this.state.pageNO = null;
         this.setState({ isInvertPageDivShow: true });
         break;
       case "setCustomStamps":
@@ -1139,7 +1157,7 @@ class App extends Component {
         this.setState({ linkPageNo: false });
         break;
     }
-  }
+  };
 
   submitLinkAnnotation = (event) => {
     this.eViewerObj = null;
@@ -1153,7 +1171,7 @@ class App extends Component {
 
     const options = {
       url: URL,
-      pageno: pageNo
+      pageno: pageNo,
     };
 
     this.eViewerObj.annotationService.drawLinkAnnotation(
@@ -1164,7 +1182,7 @@ class App extends Component {
     this.disableAllDiv();
     this.setState({ linkUrl: false });
     this.setState({ linkPageNo: false });
-  }
+  };
 
   MultiPageAnnotation = (event) => {
     this.eViewerObj = null;
@@ -2298,6 +2316,17 @@ class App extends Component {
                             className="form-control form-control-sm"
                             name="DocName"
                             placeholder="Document Name"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            onChange={this.IncludeCommentsValue}
+                            value={this.state.includeComments}
+                            className="form-control form-control-sm"
+                            name="includeAnnotations"
+                            placeholder="Include Comments"
                             required
                           />
                         </div>
