@@ -38,8 +38,15 @@ class App extends Component {
       issearchTextDivShow: false,
       isExportDivShow: false,
       isInvertPageDivShow: false,
+      isCopyToClipboardDivShow: false,
       isSetCustomStampsShow: false,
-      isLinkAnnotationShow: false
+      isSetDocumentTabStyle: false,
+      isGetDocumentTabStyle: false,
+      isSetDocumentNameTooltipDirection: false,
+      showAddWatermarkForm: false,
+      showEditWatermarkForm: false,
+      showDeleteWatermarkForm: false,
+      isLinkAnnotationShow: false,
     };
 
     this.state = { filterJSON: "" };
@@ -129,8 +136,13 @@ class App extends Component {
         // Not required but had to do to initialize the internal arrays o eviewer for use case for QA whrer they upload documents with upload component eithout api's.
         this.eViewerObj.annotationService.getStamps();
       }
+      this.eViewerObj.onDocumentTabHover((viewerDocID, inFocus) => {
+        console.log("viewerDocID " + viewerDocID);
+        console.log("inFocus " + inFocus);
+      });
     }, 100);
   }
+
   submitUploadDetail = (event) => {
     if (this.eViewerObj === null) {
       this.eViewerObj = new eViewerApp(this.props.userName);
@@ -159,11 +171,10 @@ class App extends Component {
     this.docIndex = 0;
     // documentSrvc.closeAllDocuments();
     documentSrvc
-      .loadDocument(
+      .loadDocumentWithOptions(
         this.docUrlArray[this.docIndex],
         annUrl,
         clientDocID,
-        "some-document-description",
         //optional parameter
         {
           isEditMode: true,
@@ -171,6 +182,22 @@ class App extends Component {
           password: "",
           landingPage: this.state.landingPgNo,
           pageFilters: this.getPageVisibility(),
+          // tabStyle: {
+          //   backgroundColor: "white",
+          //   color: "black",
+          //   fontWeight: "900",
+          //   fontStyle: "italic",
+          //   fileName: "OUTFOCUS",
+          //   icon: "",
+          // },
+          // focusTabStyle: {
+          //   backgroundColor: "red",
+          //   color: "white",
+          //   fontWeight: "900",
+          //   fontStyle: "underline",
+          //   fileName: "INFOCUS",
+          //   icon: "",
+          // },
         }
       )
       .then((response) => {
@@ -208,6 +235,135 @@ class App extends Component {
       .then((response) => {
         console.log(response);
       });
+  };
+
+  docTabIcon = (events) => {
+    var reader = new FileReader();
+    if (events.target.files[0] != null) {
+      reader.readAsDataURL(events.target.files[0]);
+
+      reader.onload = (events) => {
+        this.setState({
+          icon: events.target.result,
+        });
+      };
+    } else {
+      this.setState({ icon: null });
+    }
+  };
+  docTabFocusIcon = (events) => {
+    var reader = new FileReader();
+    if (events.target.files[0] != null) {
+      reader.readAsDataURL(events.target.files[0]);
+
+      reader.onload = (events) => {
+        this.setState({
+          focusIcon: events.target.result,
+        });
+      };
+    } else {
+      this.setState({ focusIcon: null });
+    }
+  };
+
+  submitSetDocumentTabStyle = (event) => {
+    event.preventDefault();
+    var docId = event.target[0].value;
+    var backgroundColor = event.target[1].value;
+    var color = event.target[3].value;
+    var fileName = event.target[5].value;
+    var fontWeight = event.target[7].value;
+    var icon = this.state.icon;
+    var tabFontStyle = null;
+    if (event.target[9].checked) {
+      tabFontStyle = event.target[9].value;
+    }
+    var tabTextUnderline = null;
+    if (event.target[10].checked) {
+      tabTextUnderline = event.target[10].value;
+    }
+    this.state.icon = null;
+    var fontStyle = null;
+    if (tabFontStyle != null || tabTextUnderline != null) {
+      if (tabFontStyle != null && tabTextUnderline != null) {
+        fontStyle = tabFontStyle + " | " + tabTextUnderline;
+      } else if (tabFontStyle != null && tabTextUnderline == null) {
+        fontStyle = tabFontStyle;
+      } else {
+        fontStyle = tabTextUnderline;
+      }
+    } else {
+      fontStyle = "normal";
+    }
+
+    var focusBackgroundColor = event.target[2].value;
+    var focusColor = event.target[4].value;
+    var focusfileName = event.target[6].value;
+    var focusFontWeight = event.target[8].value;
+    var focusTabFontStyle = null;
+    if (event.target[11].checked) {
+      focusTabFontStyle = event.target[11].value;
+    }
+    var focusTextUnderline = null;
+    if (event.target[12].checked) {
+      focusTextUnderline = event.target[12].value;
+    }
+    var focusIcon = this.state.focusIcon;
+    this.state.focusIcon = null;
+    var focusFontStyle = null;
+    if (focusTabFontStyle != null || focusTextUnderline != null) {
+      if (focusTabFontStyle != null && focusTextUnderline != null) {
+        focusFontStyle = focusTabFontStyle + " | " + focusTextUnderline;
+      } else if (focusTabFontStyle != null && focusTextUnderline == null) {
+        focusFontStyle = focusTabFontStyle;
+      } else {
+        focusFontStyle = focusTextUnderline;
+      }
+    } else {
+      focusFontStyle = "normal";
+    }
+    var style = {
+      backgroundColor: backgroundColor,
+      color: color,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      fileName: fileName,
+      icon: icon,
+    };
+    var focusStyle = {
+      backgroundColor: focusBackgroundColor,
+      color: focusColor,
+      fontWeight: focusFontWeight,
+      fontStyle: focusFontStyle,
+      fileName: focusfileName,
+      icon: focusIcon,
+    };
+
+    this.eViewerObj.documentService
+      .setDocumentTabStyle(this.state.docId, style, focusStyle)
+      .then((response) => {
+        console.log(response);
+      });
+
+    this.disableAllDiv();
+  };
+
+  submitGetDocumentTabStyle = (event) => {
+    var docId = this.state.docId;
+
+    this.eViewerObj.documentService
+      .getDocumentTabStyle(this.state.docId)
+      .then((response) => {
+        console.log(response);
+      });
+
+    this.disableAllDiv();
+  };
+  submitSetDocumentNameTooltipDirection = (event) => {
+    let result = this.eViewerObj.setDocumentNameTooltipDirection(
+      this.state.direction
+    );
+    this.disableAllDiv();
   };
 
   submitGetPageInfo = (event) => {
@@ -307,8 +463,17 @@ class App extends Component {
     this.disableAllDiv();
   };
 
-  submitSetCustomStamps = () => {
-    this.eViewerObj.annotationService
+  submitCopyToClipboardDetail = () => {
+    this.eViewerObj.documentService
+      .copyToClipboard(this.state.pageNO)
+      .then((response) => {
+        console.log("copyToClipboard: " + response);
+      });
+    this.disableAllDiv();
+  };
+
+  submitSetCustomStamps = () => {    
+    this.eViewerObj.documentService
       .setCustomStamps(this.state.pageNO)
       .then((response) => {
         console.log("setCustomStamps: " + response);
@@ -355,12 +520,19 @@ class App extends Component {
     });
   };
 
+  iconFilePath = (events) => {
+    this.setState({
+      iconUrl: events.target.files,
+    });
+  };
+
   submitExportDetail = () => {
     if (this.eViewerObj === null) {
       this.eViewerObj = new eViewerApp(this.props.userName);
     }
 
     this.eViewerObj.setUserName(this.props.userName);
+
     if (
       this.state.startPage === undefined &&
       this.state.endPage === undefined
@@ -373,6 +545,7 @@ class App extends Component {
     if (this.state.includeComments === "false") {
       withComments = false;
     }
+
     let exportData = {
       docName: this.state.DocName,
       pageOption: this.state.pageOption,
@@ -449,8 +622,8 @@ class App extends Component {
       isGetCurrentRotation: false,
       isgotoPageDivShow: false,
       isInvertPageDivShow: false,
+      isCopyToClipboardDivShow: false,
       isSetCustomStampsShow: false,
-      isLinkAnnotationShow: false,
       isinsertDivShow: false,
       isappendDivShow: false,
       issearchTextDivShow: false,
@@ -462,6 +635,13 @@ class App extends Component {
       isShowOnlyPagesShow: false,
       isHideOnlyPagesShow: false,
       isUpdateButtonShow: false,
+      isSetDocumentTabStyle: false,
+      isGetDocumentTabStyle: false,
+      isSetDocumentNameTooltipDirection: false,
+      showAddWatermarkForm: false,
+      showEditWatermarkForm: false,
+      showDeleteWatermarkForm: false,
+      isLinkAnnotationShow: false,
     });
   };
 
@@ -471,6 +651,49 @@ class App extends Component {
 
   docIdValue = (events) => {
     this.setState({ docId: events.target.value });
+  };
+
+  docTabFileName = (events) => {
+    this.setState({ fileName: events.target.value });
+  };
+  docTabFocusFileName = (events) => {
+    this.setState({ focusFileName: events.target.value });
+  };
+
+  docDirection = (events) => {
+    this.setState({ direction: events.target.value });
+  };
+
+  docTabBackgroundColor = (events) => {
+    this.setState({ backgroundColor: events.target.value });
+  };
+  docTabFocusBackgroundColor = (events) => {
+    this.setState({ focusBackgroundColor: events.target.value });
+  };
+  docTabColor = (events) => {
+    this.setState({ color: events.target.value });
+  };
+  docTabFocusColor = (events) => {
+    this.setState({ focusColor: events.target.value });
+  };
+
+  docTabFontWeight = (events) => {
+    this.setState({ fontWeight: events.target.value });
+  };
+  docTabFocusFontWeight = (events) => {
+    this.setState({ focusFontWeight: events.target.value });
+  };
+  docTabFontStyle = (events) => {
+    this.setState({ fontStyle: events.target.value });
+  };
+  docTabFocusFontStyle = (events) => {
+    this.setState({ focusFontStyle: events.target.value });
+  };
+  docTabTextUnderline = (events) => {
+    this.setState({ tabTextUnderline: events.target.value });
+  };
+  docTabFocusTextUnderline = (events) => {
+    this.setState({ focusTabTextUnderline: events.target.value });
   };
 
   pageRangeValue = (events) => {
@@ -800,11 +1023,13 @@ class App extends Component {
         this.state.pageNO = null;
         this.setState({ isInvertPageDivShow: true });
         break;
+      case "copyToClipboard":
+        this.state.pageNO = null;
+        this.setState({ isCopyToClipboardDivShow: true });
+        break;
+
       case "setCustomStamps":
         this.setState({ isSetCustomStampsShow: true });
-        break;
-      case "linkAnnotation":
-        this.setState({ isLinkAnnotationShow: true });
         break;
       case "switchThumbnail":
         this.eViewerObj.toggleThumbnail().then((response) => {
@@ -892,6 +1117,31 @@ class App extends Component {
       case "addButton":
         this.setState({ isAddButtonShow: true });
         break;
+      case "setDocumentTabStyle":
+        this.setState({ isSetDocumentTabStyle: true });
+        break;
+      case "getDocumentTabStyle":
+        this.setState({ isGetDocumentTabStyle: true });
+        break;
+
+      case "setDocumentNameTooltipDirection":
+        this.setState({ isSetDocumentNameTooltipDirection: true });
+        break;
+
+      case "addWatermark":
+        this.setState({ showAddWatermarkForm: true });
+        break;
+      case "editWatermark":
+        this.setState({ showEditWatermarkForm: true });
+        break;
+      case "deleteWatermark":
+        this.setState({ showDeleteWatermarkForm: true });
+        break;
+
+      case "linkAnnotation":
+        this.setState({ isLinkAnnotationShow: true });
+        break;
+
       default:
         break;
     }
@@ -1139,49 +1389,6 @@ class App extends Component {
       default:
         break;
     }
-  };
-
-  chooseLink = (event) => {
-    const linkValue = event.target.value;
-    switch(linkValue){
-      case "url":
-        this.setState({ linkUrl: true });
-        this.setState({ linkPageNo: false });
-        break;
-      case "pageNo":
-        this.setState({ linkUrl: false });
-        this.setState({ linkPageNo: true });
-        break;
-      default :
-        this.setState({ linkUrl: false });
-        this.setState({ linkPageNo: false });
-        break;
-    }
-  };
-
-  submitLinkAnnotation = (event) => {
-    this.eViewerObj = null;
-    if (this.eViewerObj === null) {
-      this.eViewerObj = new eViewerApp(this.props.userName);
-    }
-
-    const annId = document.querySelector('[name="ANNOTATIONID"]').value;
-    const URL = document.querySelector('[name="LINKURL"]')?.value;
-    const pageNo = document.querySelector('[name="LINKPAGENO"]')?.value;
-
-    const options = {
-      url: URL,
-      pageno: pageNo,
-    };
-
-    this.eViewerObj.annotationService.drawLinkAnnotation(
-      annId,
-      options
-    );
-
-    this.disableAllDiv();
-    this.setState({ linkUrl: false });
-    this.setState({ linkPageNo: false });
   };
 
   MultiPageAnnotation = (event) => {
@@ -1526,6 +1733,112 @@ class App extends Component {
     this.setState({ getFilteredAnnDiv: false });
   };
 
+  addWatermark = (event) => {
+    event.preventDefault();
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+
+    this.eViewerObj.setUserName(this.props.userName);
+    const properties = {
+      id: "",
+      text: event.target[0].value,
+      style: event.target[1].value,
+      position: event.target[2].value,
+      opacity: event.target[3].value,
+      stretch: event.target[4].value,
+      font: event.target[5].value,
+      pageOption: event.target[6].value,
+    };
+    this.eViewerObj.watermarkService
+      .addWatermark(properties)
+      .then((response) => {
+        console.log(response);
+      });
+    this.setState({ showAddWatermarkForm: false });
+  };
+
+  editWatermark = (event) => {
+    event.preventDefault();
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+
+    this.eViewerObj.setUserName(this.props.userName);
+    const properties = {
+      id: event.target[0].value,
+      text: event.target[1].value,
+      style: event.target[2].value,
+      position: event.target[3].value,
+      opacity: event.target[4].value,
+      stretch: event.target[5].value,
+      font: event.target[6].value,
+      pageOption: event.target[7].value,
+    };
+    this.eViewerObj.watermarkService
+      .editWatermark(properties)
+      .then((response) => {
+        console.log(response);
+      });
+    this.setState({ showEditWatermarkForm: false });
+  };
+
+  deleteWatermark = (event) => {
+    event.preventDefault();
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+
+    this.eViewerObj.setUserName(this.props.userName);
+    const watermarkId = event.target[0].value;
+    this.eViewerObj.watermarkService
+      .deleteWatermark(watermarkId)
+      .then((response) => {
+        console.log(response);
+      });
+    this.setState({ showDeleteWatermarkForm: false });
+  };
+
+  chooseLink = (event) => {
+    const linkValue = event.target.value;
+    switch (linkValue) {
+      case "url":
+        this.setState({ linkUrl: true });
+        this.setState({ linkPageNo: false });
+        break;
+      case "pageNo":
+        this.setState({ linkUrl: false });
+        this.setState({ linkPageNo: true });
+        break;
+      default:
+        this.setState({ linkUrl: false });
+        this.setState({ linkPageNo: false });
+        break;
+    }
+  };
+
+  submitLinkAnnotation = (event) => {
+    this.eViewerObj = null;
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+
+    const annId = document.querySelector('[name="ANNOTATIONID"]').value;
+    const URL = document.querySelector('[name="LINKURL"]')?.value;
+    const pageNo = document.querySelector('[name="LINKPAGENO"]')?.value;
+
+    const options = {
+      url: URL,
+      pageno: pageNo,
+    };
+
+    this.eViewerObj.annotationService.drawLinkAnnotation(annId, options);
+
+    this.disableAllDiv();
+    this.setState({ linkUrl: false });
+    this.setState({ linkPageNo: false });
+  };
+
   render() {
     return (
       <>
@@ -1632,6 +1945,9 @@ class App extends Component {
               <option className="text-dark" value="copyPage">
                 CopyPage
               </option>
+              <option className="text-dark" value="copyToClipboard">
+                CopyToClipboard
+              </option>
               <option className="text-dark" value="cutPage">
                 CutPage
               </option>
@@ -1721,8 +2037,33 @@ class App extends Component {
               <option className="text-dark" value="setCustomStamps">
                 Set Custom Stamps
               </option>
+
               <option className="text-dark" value="linkAnnotation">
                 Link Annotation
+              </option>
+
+              <option className="text-dark" value="setDocumentTabStyle">
+                Set Document Tab Styles
+              </option>
+
+              <option className="text-dark" value="getDocumentTabStyle">
+                Get Document Tab Styles
+              </option>
+
+              <option
+                className="text-dark"
+                value="setDocumentNameTooltipDirection"
+              >
+                Set Document Name Tooltip Direction
+              </option>
+              <option className="text-dark" value="addWatermark">
+                Add Watermark
+              </option>
+              <option className="text-dark" value="editWatermark">
+                Edit Watermark
+              </option>
+              <option className="text-dark" value="deleteWatermark">
+                Delete Watermark
               </option>
             </select>
           </div>
@@ -2034,6 +2375,40 @@ class App extends Component {
           ) : (
             ""
           )}
+          {this.state.isCopyToClipboardDivShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            onChange={this.pageNoValue}
+                            value={this.state.pageNO}
+                            className="form-control form-control-sm"
+                            name="pageNO"
+                            placeholder="Enter Page Range"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitCopyToClipboardDetail}
+                      >
+                        Go
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
           {this.state.isSetCustomStampsShow === true ? (
             <>
               <div>
@@ -2058,85 +2433,6 @@ class App extends Component {
                         onClick={this.submitSetCustomStamps}
                       >
                         Go
-                      </button>
-                      &nbsp;
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
-            ""
-          )}
-          {this.state.isLinkAnnotationShow === true ? (
-            <>
-              <div>
-                <div className="login-box card bg-info div-mst">
-                  <div className="card-body">
-                    <div className="form-horizontal">
-                      <div className="form-group">
-                        <div>
-                          <input
-                            type="text"
-                            className="form-control form-control-sm"
-                            name="ANNOTATIONID"
-                            placeholder="Annotation Id"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <div>
-                          <select
-                            className="custom-select"
-                            name="selectLinkType"
-                            onChange={this.chooseLink}
-                          >
-                            <option className="" defaultValue="">Select To Link With</option>
-                            <option className="text-dark" value="url">LINK URL</option>
-                            <option className="text-dark" value="pageNo">LINK PAGE NUMBER</option>
-                          </select>
-                        </div>
-                      </div>
-                      {this.state.linkUrl === true ? (
-                        <>
-                          <div className="form-group">
-                            <div>
-                              <input
-                              type="text"
-                              className="form-control form-control-sm"
-                              name="LINKURL"
-                              placeholder="Enter URL"
-                              required
-                              />
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        ""
-                      )}
-                      {this.state.linkPageNo === true ? (
-                        <>
-                          <div className="form-group">
-                            <div>
-                              <input
-                              type="text"
-                              className="form-control form-control-sm"
-                              name="LINKPAGENO"
-                              placeholder="Enter PageNo"
-                              required
-                              />
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        ""
-                      )}
-                      <button
-                        className="btn btn-primary"
-                        onClick={this.submitLinkAnnotation}
-                      >
-                        submit
                       </button>
                       &nbsp;
                     </div>
@@ -3563,6 +3859,536 @@ class App extends Component {
                       Update Button
                     </button>
                     &nbsp;
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isSetDocumentTabStyle === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form
+                    className="form-horizontal"
+                    onSubmit={this.submitSetDocumentTabStyle}
+                  >
+                    <div className="card-body">
+                      <div className="form-horizontal">
+                        <div className="form-group">
+                          <div>
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              name="docId"
+                              onChange={this.docIdValue}
+                              value={this.state.docId}
+                              placeholder="Document ID"
+                              required
+                            />
+                          </div>
+                          <div className="form-row">
+                            <div className="col">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="backgroundColor"
+                                onChange={this.docTabBackgroundColor}
+                                placeholder="BackGround Color"
+                              />
+                            </div>
+                            <div className="col">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="backgroundColor"
+                                onChange={this.docTabFocusBackgroundColor}
+                                placeholder="Focus BackGround Color"
+                              />
+                            </div>
+                          </div>
+                          <div className="form-row">
+                            <div className="col">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="color"
+                                onChange={this.docTabColor}
+                                placeholder="Font Color"
+                              />
+                            </div>
+                            <div className="col">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="color"
+                                onChange={this.docTabFocusColor}
+                                placeholder="Font Color"
+                              />
+                            </div>
+                          </div>
+                          <div className="form-row">
+                            <div className="col">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="fileName"
+                                onChange={this.docTabFileName}
+                                placeholder="File Name"
+                              />
+                            </div>
+                            <div className="col">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="fileName"
+                                onChange={this.docTabFocusFileName}
+                                placeholder="File Name"
+                              />
+                            </div>
+                          </div>
+                          <div className="form-row">
+                            <div className="col">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="fileName"
+                                onChange={this.docTabFontWeight}
+                                placeholder="Font-Weight(100-900)"
+                              />
+                            </div>
+
+                            <div className="col">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="fileName"
+                                onChange={this.docTabFocusFontWeight}
+                                placeholder="Font-Weight(100-900)"
+                              />
+                            </div>
+                          </div>
+                          <div className="form-row">
+                            <div className="col">
+                              <input
+                                type="checkbox"
+                                value="italic"
+                                onChange={this.docTabFontStyle}
+                              />
+                              &nbsp; Italic &nbsp;&nbsp;
+                              <input
+                                type="checkbox"
+                                value="underline"
+                                onChange={this.docTabTextUnderline}
+                              />
+                              &nbsp; Underline
+                            </div>
+                            <div className="col">
+                              <input
+                                type="checkbox"
+                                value="italic"
+                                onChange={this.docTabFocusFontStyle}
+                              />
+                              &nbsp; Italic &nbsp;&nbsp;
+                              <input
+                                type="checkbox"
+                                value="underline"
+                                onChange={this.docTabFocusTextUnderline}
+                              />
+                              &nbsp; Underline
+                            </div>
+                          </div>
+
+                          <div className="form-row">
+                            <div className="col">
+                              <input
+                                type="file"
+                                className="form-control form-control-sm wrapword"
+                                id="file-id"
+                                name="icon"
+                                accept="image/png, image/gif, image/jpeg, image/bmp"
+                                onChange={this.docTabIcon}
+                              />
+                            </div>
+                            <div className="col">
+                              <input
+                                type="file"
+                                className="form-control form-control-sm wrapword"
+                                id="file-id"
+                                name="icon"
+                                accept="image/png, image/gif, image/jpeg, image/bmp"
+                                onChange={this.docTabFocusIcon}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <button type="submit" className="btn btn-primary">
+                          Submit
+                        </button>
+                        &nbsp;
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isGetDocumentTabStyle === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="docId"
+                            onChange={this.docIdValue}
+                            placeholder="Document ID"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitGetDocumentTabStyle}
+                      >
+                        Submit
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.isSetDocumentNameTooltipDirection === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="fileName"
+                          onChange={this.docDirection}
+                          placeholder="EAST or WEST or NORTH or SOUTH"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      className="btn btn-primary"
+                      onClick={this.submitSetDocumentNameTooltipDirection}
+                    >
+                      Set Tooltip Direction
+                    </button>
+                    &nbsp;
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.showAddWatermarkForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form
+                    className="form-horizontal"
+                    onSubmit={this.addWatermark}
+                  >
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkTags"
+                          placeholder="Predefined / Custom Tags"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkStyle"
+                          placeholder="top, center, bottom, diagonal, revdiagonal"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkPosition"
+                          placeholder="left, center, right"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkOpacity"
+                          placeholder="transparent, opaque"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkStretch"
+                          placeholder="100%, 50%, 33%"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkFont"
+                          placeholder="Courier, Helvetica, Times-Roman"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkPage"
+                          placeholder="AllPage, PageRange, currentPage"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-primary">
+                      add watermark
+                    </button>
+                    &nbsp;
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.showEditWatermarkForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form
+                    className="form-horizontal"
+                    onSubmit={this.editWatermark}
+                  >
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkId"
+                          placeholder="watermark id"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkTags"
+                          placeholder="Predefined / Custom Tags"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkStyle"
+                          placeholder="top, center, bottom, diagonal, revdiagonal"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkPosition"
+                          placeholder="left, center, right"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkOpacity"
+                          placeholder="transparent, opaque"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkStretch"
+                          placeholder="100%, 50%, 33%"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkFont"
+                          placeholder="Courier, Helvetica, Times-Roman"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkPage"
+                          placeholder="AllPage, PageRange, currentPage"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-primary">
+                      edit watermark
+                    </button>
+                    &nbsp;
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.showDeleteWatermarkForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form
+                    className="form-horizontal"
+                    onSubmit={this.deleteWatermark}
+                  >
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="watermarkId"
+                          placeholder="watermark id"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-danger">
+                      Delete watermark
+                    </button>
+                    &nbsp;
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.isLinkAnnotationShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="ANNOTATIONID"
+                            placeholder="Annotation Id"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <div>
+                          <select
+                            className="custom-select"
+                            name="selectLinkType"
+                            onChange={this.chooseLink}
+                          >
+                            <option className="" defaultValue="">
+                              Select To Link With
+                            </option>
+                            <option className="text-dark" value="url">
+                              LINK URL
+                            </option>
+                            <option className="text-dark" value="pageNo">
+                              LINK PAGE NUMBER
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                      {this.state.linkUrl === true ? (
+                        <>
+                          <div className="form-group">
+                            <div>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="LINKURL"
+                                placeholder="Enter URL"
+                                required
+                              />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        ""
+                      )}
+                      {this.state.linkPageNo === true ? (
+                        <>
+                          <div className="form-group">
+                            <div>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="LINKPAGENO"
+                                placeholder="Enter PageNo"
+                                required
+                              />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        ""
+                      )}
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitLinkAnnotation}
+                      >
+                        submit
+                      </button>
+                      &nbsp;
+                    </div>
                   </div>
                 </div>
               </div>

@@ -181,4 +181,14 @@ window._onContextMenu = function (info) {
   try {
     console.log(info);
   } catch (exp) {}
-}
+};
+
+
+window._tabSwitch = function (outFocusViewerDocID,inFocusViewerDocID) {
+  try {
+    console.log("OutFocus ViewerDocId : " + outFocusViewerDocID);
+    console.log("InFocus ViewerDocId: " + inFocusViewerDocID);
+  } catch (exp) {}
+};
+
+
