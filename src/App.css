@@ -46,6 +46,11 @@
   margin-top: 1rem;
 }
 
+.div-redaction {
+  width: 310px;
+  margin-left: 36%;
+  /* margin-top: 1rem; */
+}
 .pageRange {
   margin-left: 84px;
   margin-top: -2rem;

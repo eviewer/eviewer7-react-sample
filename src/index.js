@@ -4,10 +4,11 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import Form from "./form";
+import InitForm from "./InitForm";
 // import {EviewerLibComponent} from 'eviewer-lib'
 
 ReactDOM.render(
-  <Form />,
+  <InitForm />,
 
   document.getElementById("root")
 );

@@ -1,5 +1,3 @@
-import eViewerApp from "@mstechusa/eviewer7/js/eViewer7";
-
 window._docLoadComplete = function (docInfo) {
   try {
     console.log("docLoadComplete Info Below: ");
@@ -61,6 +59,17 @@ window._annPropUpdated = function (docID, pageNo, annID, annProperty) {
     );
   } catch (exp) {}
 };
+
+window._wmPropUpdated = function (docId, wmId) {
+  try {
+    console.log(
+      "wmPropUpdated: docID " +
+        docId +
+        " wmID: " +
+        wmId 
+    );
+  } catch (exp) {}
+}
 
 window._buttonAnnClicked = function (docID, annID, pageNo, buttonText) {
   try {

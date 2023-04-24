@@ -7,11 +7,11 @@ class Form extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      viewerServerURL: "",
+      viewerServerURL: this.props.viewerServerURL,
       serverUrl: "",
       savingEndpoint: "",
       ocrEndpoint: "",
-      userName: "",
+      userName: this.props.userName,
       token: "",
       isViewerLoaded: false,
       hideToolBar: false,
@@ -32,11 +32,11 @@ class Form extends Component {
     };
   }
 
-  handleInputviewerServerURL = (event) => {
-    this.setState({
-      viewerServerURL: event.target.value,
-    });
-  };
+  // handleInputviewerServerURL = (event) => {
+  //   this.setState({
+  //     viewerServerURL: event.target.value,
+  //   });
+  // };
 
   handleInputsavingEndpoint = (event) => {
     this.setState({
@@ -48,11 +48,11 @@ class Form extends Component {
       ocrEndpoint: event.target.value,
     });
   };
-  handleInputuserName = (event) => {
-    this.setState({
-      userName: event.target.value,
-    });
-  };
+  // handleInputuserName = (event) => {
+  //   this.setState({
+  //     userName: event.target.value,
+  //   });
+  // };
 
   handleToken = (event) => {
     this.setState({
@@ -71,7 +71,7 @@ class Form extends Component {
   };
 
   setViewerOptions = () => {
-    let eViewerObj = new eViewerApp("Administrator");
+    let eViewerObj = new eViewerApp(this.props.userName);
 
     let viewerPrefSrvc = eViewerObj.getViewerPreferenceService();
     let preferencesPromise = viewerPrefSrvc.getUserPreferences(
@@ -157,16 +157,7 @@ class Form extends Component {
           <div className="card-body">
             <div className="form-horizontal">
               {}
-              <div className="form-group">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  name="viewerServerURL"
-                  value={this.state.viewerServerURL}
-                  onChange={this.handleInputviewerServerURL}
-                  placeholder="viewerServerURL"
-                />
-              </div>
+              {}
               {}
               <div className="form-group">
                 <input
@@ -188,16 +179,7 @@ class Form extends Component {
                   placeholder="OCR End point"
                 />
               </div>
-              <div className="form-group">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  name="userName"
-                  value={this.state.userName}
-                  onChange={this.handleInputuserName}
-                  placeholder="User Name"
-                />
-              </div>
+              {}
               <div className="form-group">
                 <input
                   type="text"
@@ -259,7 +241,12 @@ class Form extends Component {
             display: this.state.isViewerLoaded ? "block" : "none",
           }}
         >
-          <App userName={this.state.userName} />
+          <App
+            viewerServerURL={this.props.viewerServerURL}
+            userName={this.props.userName}
+            licenseKey={this.props.licenseKey}
+            overrideCtxMenu={this.props.overrideCtxMenu}
+          />
         </div>
       </>
     );

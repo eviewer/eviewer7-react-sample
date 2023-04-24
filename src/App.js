@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import "./App.css";
-import Form from "./form";
 import eViewerApp from "@mstechusa/eviewer7/js/eViewer7";
 import "./js/events";
 import uuid from "react-uuid";
@@ -47,6 +46,14 @@ class App extends Component {
       showEditWatermarkForm: false,
       showDeleteWatermarkForm: false,
       isLinkAnnotationShow: false,
+      scrollMode: "continuous",
+      showRedactAreaForm: false,
+      showRedactWordsForm: false,
+      showClearRedactionForm: false,
+      showRedactionDetailsForm: false,
+      redactByExpressionTag: false,
+      isSetScrollModeDivShow: false,
+      isPrintDivShow: false,
     };
 
     this.state = { filterJSON: "" };
@@ -105,7 +112,7 @@ class App extends Component {
 
     const options = {
       contextMenuOptions: {
-        overrideContextMenus: true,
+        overrideContextMenus: this.props.overrideCtxMenu,
         location: [
           "documentView",
           "pageThumbnails",
@@ -120,14 +127,17 @@ class App extends Component {
       .loadViewer("eviewer", null, null, "bestFit", options)
       .then(() => {
       console.log("loading viewer successfully");
-      this.eViewerObj.registerLicense(this.licenseKey);
+        this.eViewerObj.registerLicense(
+          this.licenseKey,
+          this.props.viewerServerURL
+        );
     });
     await import("@mstechusa/eviewer7/styles.css");
     await import("@mstechusa/eviewer7/scripts");
     await import("@mstechusa/eviewer7/runtime");
     await import("@mstechusa/eviewer7/polyfills");
     await import("@mstechusa/eviewer7/main");
-    await import("@mstechusa/eviewer7/js/events");
+    // await import("@mstechusa/eviewer7/js/events");
 
 
     setTimeout(() => {
@@ -491,6 +501,15 @@ class App extends Component {
     this.disableAllDiv();
   };
 
+  submitScrollMode = () => {
+    this.eViewerObj.documentService
+      .setDocumentScrollMode(this.state.docId, this.state.scrollMode)
+      .then((response) => {
+        console.log(response);
+      });
+      this.disableAllDiv();
+  };
+
   submitInsertDetail = () => {
     if (this.eViewerObj === null) {
       this.eViewerObj = new eViewerApp(this.props.userName);
@@ -526,6 +545,18 @@ class App extends Component {
     });
   };
 
+  submitPrintDetail = () => {
+    let printData = {
+      exportType: "PRINT",
+      pageFilters: this.state.pageOption,
+      includeAnnotations: true,
+      includeWatermark: true,
+    };
+
+    this.eViewerObj.editingService.docExportWithOptions(printData);
+    this.disableAllDiv();
+  };
+
   submitExportDetail = () => {
     if (this.eViewerObj === null) {
       this.eViewerObj = new eViewerApp(this.props.userName);
@@ -547,19 +578,17 @@ class App extends Component {
     }
 
     let exportData = {
-      docName: this.state.DocName,
-      pageOption: this.state.pageOption,
-      selectedOption: this.state.doctype,
-      withAnn: "false",
-      startPageExport: this.state.startPage,
-      endPageExport: this.state.endPage,
-      withwatermark: true, // nilesh for Generic_eVewer7_2208 APINPM Watermark All 2 2
-      asStream: true,
-      withComments: withComments,
+      exportType: "EXPORT",
+      pageFilters: this.state.pageOption,
+      exportAs: this.state.doctype,
+      includeAnnotations: true,
+      includeWatermark: true,
+      includeComments: withComments,
+
     };
     let fileType = this.state.doctype;
     this.eViewerObj.editingService
-      .exportDocument(exportData)
+      .docExportWithOptions(exportData)
       .then((fileData) => {
         // fileData is an typed array (UINT8Array) holding the PDFStream
 
@@ -642,6 +671,13 @@ class App extends Component {
       showEditWatermarkForm: false,
       showDeleteWatermarkForm: false,
       isLinkAnnotationShow: false,
+      showRedactAreaForm : false,
+      showRedactWordsForm: false,
+      showClearRedactionForm: false,
+      showRedactionDetailsForm: false,
+      redactByExpressionTag: false,
+      isSetScrollModeDivShow: false,
+      isPrintDivShow: false,
     });
   };
 
@@ -651,6 +687,10 @@ class App extends Component {
 
   docIdValue = (events) => {
     this.setState({ docId: events.target.value });
+  };
+
+  scrollModeValue = (events) => {
+    this.setState({ scrollMode: events.target.value });
   };
 
   docTabFileName = (events) => {
@@ -795,6 +835,7 @@ class App extends Component {
     this.setState({ getuserReplyDiv: false });
     this.setState({ getAllAnnDiv: false });
     this.setState({ getAnnDetailsDiv: false });
+    this.setState({ setSelectedPgsDiv: false });
     this.setState({ getFilteredAnnDiv: false });
     this.setState({ linkUrl: false });
     this.setState({ linkPageNo: false });
@@ -823,14 +864,7 @@ class App extends Component {
 
         break;
       case "printDocument":
-        let printData = {
-          pageOption: "currentDocument", //"currentPage",
-          withannotation: "false",
-          startPage: 0,
-          endPage: 0,
-          withwatermark: true,
-        };
-        this.eViewerObj.editingService.printDocument(printData);
+        this.setState({ isPrintDivShow: true });
         break;
       case "getPageCount":
         this.eViewerObj.documentService.getPageCount("").then((response) => {
@@ -868,6 +902,43 @@ class App extends Component {
           console.log("nextpage: " + response);
         });
 
+        break;
+        
+      case "getSelectedPages":
+        this.eViewerObj.documentService.getSelectedPages().then((response) => {
+          console.log(response);
+        });
+
+        break;
+      case "clearSelectedPages":
+        this.eViewerObj.documentService
+          .clearSelectedPages()
+          .then((response) => {
+            console.log(response);
+          });
+        break;
+      case "getSelectedPgInfo":
+        this.eViewerObj.documentService.getSelectedPages().then((pages) => {
+          this.eViewerObj.documentService
+            .getPageInfoByRange("", pages.response)
+            .then((response) => {
+              console.log(response);
+            });
+        });
+
+        break;
+
+      case "invertSelectedPages":
+        this.eViewerObj.documentService.getSelectedPages().then((pages) => {
+          this.eViewerObj.documentService
+            .invertPages(pages.response)
+            .then((response) => {
+              console.log(response);
+            });
+        });
+        break;
+      case "setScrollMode":
+        this.setState({ isSetScrollModeDivShow: true });
         break;
       case "lastPage":
         this.eViewerObj.documentService.lastPage().then((response) => {
@@ -1071,6 +1142,10 @@ class App extends Component {
         this.setState({ multiAnnotationDiv: true });
         break;
 
+      case "redactByExpression":
+        this.setState({redactByExpressionTag: true});
+        break;
+
       case "updateComment":
         this.setState({ updateCommentDiv: true });
         break;
@@ -1093,6 +1168,10 @@ class App extends Component {
 
       case "getAnnDetails":
         this.setState({ getAnnDetailsDiv: true });
+        break;
+
+      case "setSelectedPages":
+        this.setState({ setSelectedPgsDiv: true });
         break;
 
       case "getFilteredAnn":
@@ -1142,6 +1221,26 @@ class App extends Component {
         this.setState({ isLinkAnnotationShow: true });
         break;
 
+      case "redactArea":
+        this.setState({showRedactAreaForm: true});
+        break;
+
+      case "clearRedaction":
+        this.setState({showClearRedactionForm: true});
+        break;
+
+      case "redactionDetails":
+        this.setState({showRedactionDetailsForm: true});
+        break;
+
+      case "redactWord":
+        this.setState({showRedactWordsForm: true});
+        break;
+
+      case "redactViewMode":
+        this.eViewerObj.redactionService.switchRedactViewMode().then((response) => {
+        });
+        break;
       default:
         break;
     }
@@ -1435,6 +1534,236 @@ class App extends Component {
     this.setState({ multiPageCoordinateAnnotationSelected: true });
   };
 
+  drawRedaction = (event) => {
+   event.preventDefault();
+    let options = {
+      opacity: 0.3,
+      fillColor : "#000000",
+      redactionTag: event.target[5].value
+    };
+    this.eViewerObj = null;
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+
+    this.state.pageNO = event.target[0].value;
+    let pageArray;
+    const pageRange = [];
+    if (this.state.pageNO.includes(",")) {
+      pageArray = this.state.pageNO.split(",");
+      pageArray.forEach((page) => {
+        if (page.includes("-")) {
+          page = page.split("-");
+          let startPage = +page[0];
+          const endPage = +page[1];
+          for (startPage; startPage <= endPage; startPage++) {
+            pageRange.push(startPage);
+          }
+        } else {
+          pageRange.push(+page);
+        }
+      });
+    } else if (this.state.pageNO.includes("-")) {
+        pageArray = this.state.pageNO.split("-");
+        let startPage = +pageArray[0];
+        const endPage = +pageArray[1];
+        for (startPage; startPage <= endPage; startPage++) {
+          pageRange.push(startPage);
+        }
+    } else if(this.state.pageNO === "allPages") {
+      const mstdoc = this.stService.getCurrentDoc();
+      let count = 0;
+      mstdoc.pageList.forEach(element => {
+        count = count + 1;
+        pageRange.push(count);
+      });
+    } else if(this.state.pageNO === "currentPage") {
+      const page = this.stService.getCurrentPage().pageNumber;
+      pageRange.push(page);
+    }
+    else {
+      pageRange.push(+this.state.pageNO);
+    }
+    const position = {
+      X: +Number(event.target[1].value),
+      width: +Number(event.target[2].value),
+      Y: +Number(event.target[3].value),
+      height: +Number(event.target[4].value),
+    };
+    this.eViewerObj.redactionService.drawRedaction(
+      pageRange,
+      position,
+      options
+    );
+    this.disableAllDiv();
+  }
+
+  redactWords = (event) => {
+    event.preventDefault();
+    this.eViewerObj = null;
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+    let redactWord = event.target[0].value;
+    let wholeWord = event.target[1].value;
+    let caseSenstive = event.target[2].value;
+    if(redactWord == "") {
+      return;
+    }
+    if(wholeWord == "" || wholeWord == "false") {
+      wholeWord = false;
+    }else {
+      wholeWord = true;
+    }
+    if(caseSenstive == "" || caseSenstive == "false") {
+      caseSenstive = false;
+    }else {
+      caseSenstive = true;
+    }
+    let options = {
+      wholeWord: wholeWord,
+      caseSensitive: caseSenstive,
+      selectedTag: event.target[3].value
+    }
+    this.eViewerObj.redactionService.redactWord(
+      redactWord, options
+    );
+    this.disableAllDiv();
+  }
+
+  clearRedaction = (event) => {
+    event.preventDefault();
+    this.eViewerObj = null;
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+    this.state.pageNO = event.target[0].value;
+    console.log(event.target[0].value)
+    let pageArray;
+    const pageRange = [];
+    if (this.state.pageNO.includes(",")) {
+      pageArray = this.state.pageNO.split(",");
+      pageArray.forEach((page) => {
+        if (page.includes("-")) {
+          page = page.split("-");
+          let startPage = +page[0];
+          const endPage = +page[1];
+          for (startPage; startPage <= endPage; startPage++) {
+            pageRange.push(startPage);
+          }
+        } else {
+          pageRange.push(+page);
+        }
+      });
+    } else if (this.state.pageNO.includes("-")) {
+        pageArray = this.state.pageNO.split("-");
+        let startPage = +pageArray[0];
+        const endPage = +pageArray[1];
+        for (startPage; startPage <= endPage; startPage++) {
+          pageRange.push(startPage);
+        }
+    } else if(this.state.pageNO === "allPages") {
+      const mstdoc = this.stService.getCurrentDoc();
+      let count = 0;
+      mstdoc.pageList.forEach(element => {
+        count = count + 1;
+        pageRange.push(count);
+      });
+    } else if(this.state.pageNO === "currentPage") {
+      const page = this.stService.getCurrentPage().pageNumber;
+      pageRange.push(page);
+    }
+    else {
+      pageRange.push(+this.state.pageNO);
+    }
+    this.eViewerObj.redactionService.clearRedaction(
+      pageRange
+    );
+    this.disableAllDiv();
+  }
+
+  getRedactionDetails = (event) => {
+    event.preventDefault();
+    this.eViewerObj = null;
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+    this.state.pageNO = event.target[0].value;
+    let pageArray;
+    const pageRange = [];
+    if (this.state.pageNO.includes(",")) {
+      pageArray = this.state.pageNO.split(",");
+      pageArray.forEach((page) => {
+        if (page.includes("-")) {
+          page = page.split("-");
+          let startPage = +page[0];
+          const endPage = +page[1];
+          for (startPage; startPage <= endPage; startPage++) {
+            pageRange.push(startPage);
+          }
+        } else {
+          pageRange.push(+page);
+        }
+      });
+    } else if (this.state.pageNO.includes("-")) {
+        pageArray = this.state.pageNO.split("-");
+        let startPage = +pageArray[0];
+        const endPage = +pageArray[1];
+        for (startPage; startPage <= endPage; startPage++) {
+          pageRange.push(startPage);
+        }
+    } else if(this.state.pageNO === "allPages") {
+      const mstdoc = this.stService.getCurrentDoc();
+      let count = 0;
+      mstdoc.pageList.forEach(element => {
+        count = count + 1;
+        pageRange.push(count);
+      });
+    } else if(this.state.pageNO === "currentPage") {
+      const page = this.stService.getCurrentPage().pageNumber;
+      pageRange.push(page);
+    }
+    else {
+      pageRange.push(+this.state.pageNO);
+    }
+
+    this.eViewerObj.redactionService.getDetails(
+      pageRange
+    );
+    this.disableAllDiv();
+  }
+  
+  selectedRedactOption = (event) => {
+    event.preventDefault();
+    const option = event.target.value;
+    if(this.selectedRedactTags != null){
+      this.redactArray = this.selectedRedactTags.split(",");
+      if(this.redactArray.includes(option)){
+        return;
+      }
+    }
+    this.selectedRedactTags = 
+      this.selectedRedactTags != null ? this.selectedRedactTags + option + "," : option + ",";
+    document.getElementById("selectedRedactTags").value = this.selectedRedactTags;
+  }
+
+  redactExpressions = (event) => {
+    event.preventDefault();
+    this.eViewerObj = null;
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+    if(document.getElementById("selectedRedactTags").value == "") {
+      return;
+    }
+    this.selectedRedactTags = null;
+    this.redactArray = null;
+    this.eViewerObj.redactionService.redactExpressions(
+      document.getElementById("selectedRedactTags").value,
+      document.getElementById("selectedTag").value);
+    this.disableAllDiv();
+  }
+
   drawMultiPageAnnotation = (event) => {
     event.preventDefault();
 
@@ -1691,6 +2020,14 @@ class App extends Component {
         console.log(response);
       });
     this.setState({ getAnnDetailsDiv: false });
+  };
+
+  setSelectedPgsDetails = (event) => {
+    const pages = event.target[0].value.split(",").map(Number);
+    this.eViewerObj.documentService.setSelectedPages(pages).then((response) => {
+      console.log(response);
+    });
+    this.setState({ setSelectedPgsDiv: false });
   };
 
   getFilteredAnnotations = (event) => {
@@ -2065,8 +2402,45 @@ class App extends Component {
               <option className="text-dark" value="deleteWatermark">
                 Delete Watermark
               </option>
+              <option className="text-dark" value="getSelectedPages">
+                Get Selected Pages
+              </option>
+              <option className="text-dark" value="setSelectedPages">
+                Set Selected Pages
+              </option>
+              <option className="text-dark" value="clearSelectedPages">
+                Clear Selected Pages
+              </option>
+              <option className="text-dark" value="getSelectedPgInfo">
+                Get Selected Page Info
+              </option>
+              <option className="text-dark" value="invertSelectedPages">
+                Invert Selected Pages
+              </option>
+              <option className="text-dark" value="setScrollMode">
+                Set Scroll Mode
+              </option>
+              <option class="text-dark" value="redactArea">
+                Redact Area
+              </option>
+              <option class="text-dark" value="redactWord">
+                Redact Word
+              </option>
+              <option class="text-dark" value="clearRedaction">
+                Clear Redactions
+              </option>
+              <option class="text-dark" value="redactByExpression">
+                Search and Redact Expressions
+              </option>
+              <option class="text-dark" value="redactionDetails">
+                Get Redaction Details
+              </option>
+              <option class="text-dark" value="redactViewMode">
+                Redact View Mode
+              </option>
             </select>
           </div>
+          
           {this.state.isUploadDivShow === true ? (
             <>
               <div>
@@ -2478,6 +2852,49 @@ class App extends Component {
             ""
           )}
 
+          {this.state.isSetScrollModeDivShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="docId"
+                          onChange={this.docIdValue}
+                          value={this.state.docId}
+                          placeholder="Document ID"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="scrollMode"
+                          onChange={this.scrollModeValue}
+                          value={this.state.scrollMode}
+                          placeholder="continuous or page"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      onClick={this.submitScrollMode}
+                      className="btn btn-primary"
+                    >
+                      Submit
+                    </button>
+                    &nbsp;
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
           {this.state.isinsertDivShow === true ? (
             <>
               <div>
@@ -2580,28 +2997,8 @@ class App extends Component {
                             value={this.state.pageOption}
                             className="form-control form-control-sm"
                             name="pageOption"
-                            placeholder="currentPage or currentDocument or pageRange or allDocuments"
+                            placeholder="currentPage or currentDocument or pageRange or selectedPages or allDocuments"
                             required
-                          />
-                        </div>
-                        <div>
-                          <input
-                            type="text"
-                            onChange={this.onStartPage}
-                            value={this.state.startPage}
-                            className="form-control form-control-sm"
-                            name="startPage"
-                            placeholder="Start Page"
-                          />
-                        </div>
-                        <div>
-                          <input
-                            type="text"
-                            onChange={this.onEndPage}
-                            value={this.state.endPage}
-                            className="form-control form-control-sm"
-                            name="startPage"
-                            placeholder="Start Page"
                           />
                         </div>
                         <div>
@@ -2632,6 +3029,40 @@ class App extends Component {
                       </button>
                       &nbsp;
                     </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.isPrintDivShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          onChange={this.pageOptionValue}
+                          value={this.state.pageOption}
+                          className="form-control form-control-sm"
+                          name="pageOption"
+                          placeholder="currentPage or currentDocument or pageRange or selectedPages or allDocuments"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      onClick={this.submitPrintDetail}
+                    >
+                      Print
+                    </button>
+                    &nbsp;
                   </div>
                 </div>
               </div>
@@ -2902,6 +3333,99 @@ class App extends Component {
                       REDACTION
                     </option>
                   </select>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+         {this.state.redactByExpressionTag === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form
+                      className="form-horizontal"
+                  >
+                    
+                    <div className="form-group">
+                      <select
+                        className="custom-select"
+                        name="selectedOption"
+                        onChange={this.selectedRedactOption}
+                      >
+                        <option value="" defaultValue="">Select Expression</option>
+                        <option class="text-dark" value="NAME">NAME</option>
+                        <option class="text-dark" value="DOB">DATE OF BIRTH</option>
+                        <option class="text-dark" value="ADDRESS">ADDRESS</option>
+                        <option class="text-dark" value="CREDIT CARD">CREDIT CARD</option>
+                        <option class="text-dark" value="AGE">AGE</option>
+                        <option class="text-dark" value="ACCOUNT NUMBER">ACCOUNT NUMBER</option>
+                        <option class="text-dark" value="BETWEEN">BETWEEN</option>
+                        <option class="text-dark" value="DRIVER LICENSE">DRIVER LICENSE</option>
+                        <option class="text-dark" value="DATE">DATE</option>
+                        <option class="text-dark" value="Email">EMAIL ADDRESS</option>
+                        <option class="text-dark" value="GENDER">GENDER IDENTITY</option>
+                        <option class="text-dark" value="HTTP_URL">WEB ADDRESS</option>
+                        <option class="text-dark" value="PASSPORT NUMBER">PASSPORT NUMBER</option>
+                        <option class="text-dark" value="POLICY NUMBER">POLICY NUMBER</option>
+                        <option class="text-dark" value="Phone">PHONE NUMBER</option>
+                        <option class="text-dark" value="SSN">SOCIAL SECURITY NUMBER</option>
+                        <option class="text-dark" value="STATE">STATE</option>
+                        <option class="text-dark" value="ZIP_CODE">ZIP CODE</option>
+                        <option class="text-dark" value="RACE">ETHNIC GROUP</option>
+                        <option class="text-dark" value="US_CURRENCY">CURRENCY</option>
+                      </select>
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          id="selectedRedactTags"
+                          name="selectedRedactTags"
+                        />
+                      </div>
+                      <div>
+                        <div
+                        tabindex="0"
+                        class="login-box card bg-info div-redaction"
+                        >
+                          <select
+                            class="custom-select"
+                            name="selectedTag"
+                            id="selectedTag"
+                            required
+                          >
+                            <option value="" defaultValue="">Select Tag</option>
+                            <option class="text-dark" value="Confidential">
+                              Confidential
+                            </option>
+                            <option class="text-dark" value="Prohibited">
+                              Prohibited
+                            </option>
+                            <option class="text-dark" value="Sensitive">
+                              Sensitive
+                            </option>
+                            <option class="text-dark" value="Important">
+                              Important
+                            </option>
+                            <option class="text-dark" value="Restricted">
+                              Restricted
+                            </option>
+                            <option class="text-dark" value="SSN">
+                              SSN
+                            </option>
+                            <option class="text-dark" value="Account Detail">
+                              Account Detail
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary"
+                      onClick={this.redactExpressions}>
+                        Apply
+                      </button>
+                    </div>  
+                  </form>
                 </div>
               </div>
             </>
@@ -3481,6 +4005,37 @@ class App extends Component {
             ""
           )}
 
+          {this.state.setSelectedPgsDiv === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form
+                    className="form-horizontal"
+                    onSubmit={this.setSelectedPgsDetails}
+                  >
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="pgsToSelect"
+                          placeholder="1,2,3"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-primary">
+                      Set Selected Pages
+                    </button>
+                    &nbsp;
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
           {this.state.getFilteredAnnDiv === true ? (
             <>
               <div>
@@ -3896,6 +4451,7 @@ class App extends Component {
                                 name="backgroundColor"
                                 onChange={this.docTabBackgroundColor}
                                 placeholder="BackGround Color"
+
                               />
                             </div>
                             <div className="col">
@@ -3905,6 +4461,7 @@ class App extends Component {
                                 name="backgroundColor"
                                 onChange={this.docTabFocusBackgroundColor}
                                 placeholder="Focus BackGround Color"
+
                               />
                             </div>
                           </div>
@@ -3916,6 +4473,7 @@ class App extends Component {
                                 name="color"
                                 onChange={this.docTabColor}
                                 placeholder="Font Color"
+
                               />
                             </div>
                             <div className="col">
@@ -3925,6 +4483,7 @@ class App extends Component {
                                 name="color"
                                 onChange={this.docTabFocusColor}
                                 placeholder="Font Color"
+
                               />
                             </div>
                           </div>
@@ -3936,6 +4495,7 @@ class App extends Component {
                                 name="fileName"
                                 onChange={this.docTabFileName}
                                 placeholder="File Name"
+
                               />
                             </div>
                             <div className="col">
@@ -3945,6 +4505,7 @@ class App extends Component {
                                 name="fileName"
                                 onChange={this.docTabFocusFileName}
                                 placeholder="File Name"
+
                               />
                             </div>
                           </div>
@@ -3956,6 +4517,7 @@ class App extends Component {
                                 name="fileName"
                                 onChange={this.docTabFontWeight}
                                 placeholder="Font-Weight(100-900)"
+
                               />
                             </div>
 
@@ -3966,6 +4528,7 @@ class App extends Component {
                                 name="fileName"
                                 onChange={this.docTabFocusFontWeight}
                                 placeholder="Font-Weight(100-900)"
+
                               />
                             </div>
                           </div>
@@ -4023,7 +4586,11 @@ class App extends Component {
                             </div>
                           </div>
                         </div>
-                        <button type="submit" className="btn btn-primary">
+                        <button
+                          type="submit"
+                          className="btn btn-primary"
+
+                        >
                           Submit
                         </button>
                         &nbsp;
@@ -4310,6 +4877,253 @@ class App extends Component {
           ) : (
             ""
           )}
+
+         {this.state.showRedactAreaForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form
+                    className="form-horizontal"
+                    onSubmit={this.drawRedaction}
+                  >
+                   <div className="form-group">
+                     <div>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          name="pageNo"
+                          placeholder="e.g. '1,4,5' or '1-9' or '2'"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          name="startX"
+                          placeholder="startX: Position on page in pixels."
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          name="endX"
+                          placeholder="endX: Position on page in pixels."
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          name="startY"
+                          placeholder="startY: Position on page in pixels."
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          name="endY"
+                          placeholder="endY: Position on page in pixels."
+                          required
+                        />
+                      </div>
+                      <div>
+                        <div
+                          tabindex="0"
+                          class="login-box card bg-info div-redaction"
+                        >
+                          <select
+                            class="custom-select"
+                            name="selectedTag"
+                            required
+                          >
+                            <option value="" defaultValue="">Select Tag</option>
+                            <option class="text-dark" value="Confidential">
+                              Confidential
+                            </option>
+                            <option class="text-dark" value="Prohibited">
+                              Prohibited
+                            </option>
+                            <option class="text-dark" value="Sensitive">
+                              Sensitive
+                            </option>
+                            <option class="text-dark" value="Important">
+                              Important
+                            </option>
+                            <option class="text-dark" value="Restricted">
+                              Restricted
+                            </option>
+                            <option class="text-dark" value="SSN">
+                              SSN
+                            </option>
+                            <option class="text-dark" value="Account Detail">
+                              Account Detail
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-danger">
+                      Draw Redaction
+                    </button>
+                    &nbsp;
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.showRedactWordsForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form
+                    className="form-horizontal"
+                    onSubmit={this.redactWords}
+                  >
+                   <div className="form-group">
+                      <div>
+                          <input
+                              type="text"
+                              class="form-control form-control-sm"
+                              name="redactWord"
+                              placeholder="Enter words to redact separated by ','"
+                              required
+                          />
+                      </div>
+                      <div>
+                          <input
+                              type="text"
+                              class="form-control form-control-sm"
+                              name="wholeWord"
+                              placeholder="Whole Word (possible values 'true' or 'false')"
+                          />
+                      </div>
+                      <div>
+                          <input
+                              type="text"
+                              class="form-control form-control-sm"
+                              name="caseSenstive"
+                              placeholder="Case Sensitive (possible values 'true' or 'false')"
+                          />
+                      </div>
+                      <div>
+                        <div
+                          tabindex="0"
+                          class="login-box card bg-info div-redaction"
+                        >
+                          <select
+                            class="custom-select"
+                            name="selectedTag"
+                            required
+                          >
+                            <option value="" defaultValue="">Select Tag</option>
+                            <option class="text-dark" value="Confidential">
+                              Confidential
+                            </option>
+                            <option class="text-dark" value="Prohibited">
+                              Prohibited
+                            </option>
+                            <option class="text-dark" value="Sensitive">
+                              Sensitive
+                            </option>
+                            <option class="text-dark" value="Important">
+                              Important
+                            </option>
+                            <option class="text-dark" value="Restricted">
+                              Restricted
+                            </option>
+                            <option class="text-dark" value="SSN">
+                              SSN
+                            </option>
+                            <option class="text-dark" value="Account Detail">
+                              Account Detail
+                            </option>
+                          </select>
+                        </div>
+                     </div>
+                    </div>
+                    <button type="submit" className="btn btn-danger">
+                      Redact
+                    </button>
+                    &nbsp;
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.showClearRedactionForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form
+                    className="form-horizontal"
+                    onSubmit={this.clearRedaction}
+                  >
+                   <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          name="pageNo"
+                          placeholder="e.g. '1,4,5' or '1-9' or '2'"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-danger">
+                      Apply
+                    </button>
+                    &nbsp;
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.showRedactionDetailsForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <form
+                    className="form-horizontal"
+                    onSubmit={this.getRedactionDetails}
+                  >
+                   <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          name="pageNo"
+                          placeholder="e.g. '1,4,5' or '1-9' or '2'"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-danger">
+                      get Details
+                    </button>
+                    &nbsp;
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
 
           {this.state.isLinkAnnotationShow === true ? (
             <>
