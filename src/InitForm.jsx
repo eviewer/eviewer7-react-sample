@@ -21,6 +21,7 @@ class InitForm extends Component {
       <Form
         licenseKey={this.state.licenseKey}
         overrideCtxMenu={this.state.isChecked}
+        overrideThumbIndicator={this.state.isChecked}
         userName={this.state.userName}
         viewerServerURL={this.state.viewerServerURL}
       />
@@ -50,6 +51,12 @@ class InitForm extends Component {
   };
 
   toggleOverrideCtxMenu = () => {
+    this.setState({
+      isChecked: !this.state.isChecked,
+    });
+  };
+
+  toggleOverrideThumbIndicatorOverride = () => {
     this.setState({
       isChecked: !this.state.isChecked,
     });
@@ -96,7 +103,17 @@ class InitForm extends Component {
               defaultChecked={this.state.isChecked}
               onChange={this.toggleOverrideCtxMenu}
             />
-            Override Right Click Contenxt Menu
+            Override Right Click Context Menu
+          </label>
+        </div>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              defaultChecked={this.state.isChecked}
+              onChange={this.toggleOverrideThumbIndicatorOverride}
+            />
+            Override Thumbnail Indicator 
           </label>
         </div>
         <div>

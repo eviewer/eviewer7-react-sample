@@ -246,6 +246,7 @@ class Form extends Component {
             userName={this.props.userName}
             licenseKey={this.props.licenseKey}
             overrideCtxMenu={this.props.overrideCtxMenu}
+            overrideThumbIndicator={this.props.overrideThumbIndicator}
           />
         </div>
       </>
