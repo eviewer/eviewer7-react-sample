@@ -250,43 +250,44 @@ class App extends Component {
           this.setState({ landingPgNo: 1 });
         });
     } else {
-    documentSrvc
-      .loadDocumentWithOptions(
-        this.docUrlArray[this.docIndex],
-        annUrl,
-        clientDocID,
-        //optional parameter
-        {
-          isEditMode: true,
-          repoType: "filesystem",
-          password: "",
-          landingPage: this.state.landingPgNo,
-          pageFilters: this.getPageVisibility(),
-          tabStyle: {
-          //   backgroundColor: "white",
-          //   color: "black",
-          //   fontWeight: "900",
-          //   fontStyle: "italic",
-             fileName: "some-document-description-OUTFOCUS",
-          //   icon: "",
-          },
-          focusTabStyle: {
-          //   backgroundColor: "red",
-          //   color: "white",
-          //   fontWeight: "900",
-          //   fontStyle: "underline",
-             fileName: "some-document-description-INFOCUS",
-          //   icon: "",
-          },
-        }
-      )
-      .then((response) => {
-        console.log(response);
-        this.setState({ defaultDisabled: false });
-        this.setState({ docURLs: "" });
-        this.setState({ annURLs: "" });
-        this.setState({ landingPgNo: 1 });
-      });
+      documentSrvc
+        .loadDocumentWithOptions(
+          this.docUrlArray[this.docIndex],
+          annUrl,
+          clientDocID,
+          //optional parameter
+          {
+            isEditMode: true,
+            repoType: "filesystem",
+            password: "",
+            landingPage: this.state.landingPgNo,
+            pageFilters: this.getPageVisibility(),
+            tabStyle: {
+              //   backgroundColor: "white",
+              //   color: "black",
+              //   fontWeight: "900",
+              //   fontStyle: "italic",
+              fileName: "some-document-description-OUTFOCUS",
+              //   icon: "",
+            },
+            focusTabStyle: {
+              //   backgroundColor: "red",
+              //   color: "white",
+              //   fontWeight: "900",
+              //   fontStyle: "underline",
+              fileName: "some-document-description-INFOCUS",
+              //   icon: "",
+            },
+          }
+        )
+        .then((response) => {
+          console.log(response);
+          this.setState({ defaultDisabled: false });
+          this.setState({ docURLs: "" });
+          this.setState({ annURLs: "" });
+          this.setState({ landingPgNo: 1 });
+        });
+    }
 
     if (this.selectedAnnotation.stampDetailsArray.length === 0) {
       this.getStamps(false);
