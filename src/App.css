@@ -7,6 +7,17 @@
   pointer-events: none;
 }
 
+.form-horizontal label {
+  margin-top: 4px;
+  margin-bottom: 3px;
+  font-size: inherit;
+  color: white;
+}
+
+.form-horizontal #hide-page {
+  margin-top: 14px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;

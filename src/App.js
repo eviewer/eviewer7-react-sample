@@ -66,6 +66,7 @@ class App extends Component {
     this.state = {
       docURLs: "",
       annURLs: "",
+      captionURLs: "",
       // userName: "",
     };
     this.state = {
@@ -84,6 +85,7 @@ class App extends Component {
     this.state = {
       fileURL: null,
       file: null,
+      captionFiles: null,
     };
     this.state = {
       textSearch: "",
@@ -94,7 +96,7 @@ class App extends Component {
     };
 
     this.state = { landingPgNo: 1 };
-    this.state = { hidePages: "" };
+    this.state = { hidePages: "", clientDocId: "" };
 
     this.selectedAnnotation = {
       name: "",
@@ -183,7 +185,7 @@ class App extends Component {
     }
     let documentSrvc = this.eViewerObj.getDocumentService();
 
-    let clientDocID = "client_" + uuid();
+    // let clientDocID = "client_" + uuid();
     this.docUrlArray = this.state.docURLs.split(";");
     this.docIndex = 0;
     // documentSrvc.closeAllDocuments();
@@ -192,7 +194,7 @@ class App extends Component {
         .loadDocumentWithOptions(
           this.docUrlArray[this.docIndex],
           annUrl,
-          clientDocID,
+          this.state.clientDocId,
           //optional parameter
           {
             isEditMode: true,
@@ -254,7 +256,7 @@ class App extends Component {
         .loadDocumentWithOptions(
           this.docUrlArray[this.docIndex],
           annUrl,
-          clientDocID,
+          this.state.clientDocId,
           //optional parameter
           {
             isEditMode: true,
@@ -521,6 +523,7 @@ class App extends Component {
           console.log(response);
           this.setState({ defaultDisabled: false });
           this.setState({ docURLs: "" });
+          this.setState({ captionURLs: "" });
           this.setState({ landingPgNo: 1 });
         });
     });
@@ -599,6 +602,7 @@ class App extends Component {
     documentSrvc
       .insertDocument(this.state.file, {
         pageFilters: this.getPageVisibility(),
+        captionFiles: this.state.captionFiles,
       })
       .then((response) => {
         this.setState({ defaultDisabled: true });
@@ -615,6 +619,12 @@ class App extends Component {
   actualFilePath = (events) => {
     this.setState({
       file: events.target.files,
+    });
+  };
+
+  actualCaptionFilePath = (events) => {
+    this.setState({
+      captionFiles: events.target.files,
     });
   };
 
@@ -783,11 +793,16 @@ class App extends Component {
       isSnippingToolDivShow: false,
       isDownloadDocDivShow: false,
       isShowSetDocMetadata: false,
+      showAlignThumbnailForm: false,
     });
   };
 
   docURLsValue = (events) => {
     this.setState({ docURLs: events.target.value });
+  };
+
+  captionURLsValue = (events) => {
+    this.setState({ captionURLs: events.target.value });
   };
 
   docIdValue = (events) => {
@@ -859,6 +874,10 @@ class App extends Component {
 
   hidePagesValue = (events) => {
     this.setState({ hidePages: events.target.value });
+  };
+
+  clientDocIdValue = (events) => {
+    this.setState({ clientDocId: events.target.value });
   };
 
   annURLsValue = (events) => {
@@ -1229,10 +1248,9 @@ class App extends Component {
       case "setCustomStamps":
         this.setState({ isSetCustomStampsShow: true });
         break;
-      case "switchThumbnail":
-        this.eViewerObj.toggleThumbnail().then((response) => {
-          console.log("switchThumbnail: " + response);
-        });
+      case "alignThumbnail":
+        this.setState({ showAlignThumbnailForm: true });
+
         break;
 
       case "hideAnnotation":
@@ -2369,6 +2387,19 @@ class App extends Component {
     });
   };
 
+  alignThumbnail = (event) => {
+    event.preventDefault();
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+    const thumbPosition = event.target[0].value;
+    this.eViewerObj.alignThumbnails(thumbPosition).then((response) => {
+      console.log("alignThumbnails: " + response);
+    });
+    this.disableAllDiv();
+    this.setState({ showAlignThumbnailForm: false });
+  };
+
   render() {
     return (
       <>
@@ -2652,6 +2683,9 @@ class App extends Component {
               <option className="text-dark" value="getAllMetadata">
                 Get All Metadata
               </option>
+              <option className="text-dark" value="alignThumbnail">
+                Align Thumbnails
+              </option>
             </select>
           </div>
 
@@ -2670,6 +2704,18 @@ class App extends Component {
                             onChange={this.docURLsValue}
                             value={this.state.docURLs}
                             placeholder="Document Url's"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            id="caption"
+                            name="captionURLs"
+                            onChange={this.captionURLsValue}
+                            value={this.state.captionURLs}
+                            placeholder="Add Caption Url's"
                             required
                           />
                         </div>
@@ -2701,6 +2747,16 @@ class App extends Component {
                             onChange={this.hidePagesValue}
                             value={this.state.hidePages}
                             placeholder="Hide Pages"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="clientDocId"
+                            onChange={this.clientDocIdValue}
+                            value={this.state.clientDocId}
+                            placeholder="Client Doc ID"
                           />
                         </div>
                       </div>
@@ -3160,6 +3216,7 @@ class App extends Component {
                       onSubmit={this.submitInsertDetail}
                     >
                       <div className="form-group">
+                        <label for="fil-id">Add File</label>
                         <input
                           type="file"
                           className="form-control form-control-sm wrapword"
@@ -3168,11 +3225,23 @@ class App extends Component {
                           onChange={this.actualFilePath}
                           required
                         />
+
+                        <label for="caption">Add Caption File</label>
+                        <input
+                          type="file"
+                          className="form-control form-control-sm wrapword"
+                          id="caption"
+                          name="fileURL"
+                          onChange={this.actualCaptionFilePath}
+                          // required
+                          multiple
+                        />
                         <div>
                           <input
                             type="text"
                             className="form-control form-control-sm"
                             name="hidePages"
+                            id="hide-page"
                             onChange={this.hidePagesValue}
                             value={this.state.hidePages}
                             placeholder="Hide Pages"
@@ -5649,6 +5718,38 @@ class App extends Component {
           ) : (
             ""
           )}
+
+          {this.state.showAlignThumbnailForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.alignThumbnail}
+                    >
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="position"
+                          placeholder="left or right or top or bottom"
+                          required
+                        />
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Submit
+                      </button>
+                      &nbsp;
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
           <hr></hr>
           {}
           <div

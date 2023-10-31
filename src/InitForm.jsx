@@ -9,7 +9,8 @@ class InitForm extends Component {
     super(props);
     this.state = {
       showForm: false,
-      isChecked: true,
+      isThumbnailIndicatorChecked: true,
+      isRightClickContextMenuChecked: true, 
       userName: "demo user",
       licenseKey: "PROVIDED BY MST",
       viewerServerURL: "",
@@ -20,8 +21,8 @@ class InitForm extends Component {
     return (
       <Form
         licenseKey={this.state.licenseKey}
-        overrideCtxMenu={this.state.isChecked}
-        overrideThumbIndicator={this.state.isChecked}
+        overrideCtxMenu={this.state.isRightClickContextMenuChecked}
+        overrideThumbIndicator={this.state.isThumbnailIndicatorChecked}
         userName={this.state.userName}
         viewerServerURL={this.state.viewerServerURL}
       />
@@ -52,13 +53,13 @@ class InitForm extends Component {
 
   toggleOverrideCtxMenu = () => {
     this.setState({
-      isChecked: !this.state.isChecked,
+      isRightClickContextMenuChecked: !this.state.isRightClickContextMenuChecked,
     });
   };
 
   toggleOverrideThumbIndicatorOverride = () => {
     this.setState({
-      isChecked: !this.state.isChecked,
+      isThumbnailIndicatorChecked: !this.state.isThumbnailIndicatorChecked,
     });
   };
 
@@ -100,7 +101,7 @@ class InitForm extends Component {
           <label>
             <input
               type="checkbox"
-              defaultChecked={this.state.isChecked}
+              defaultChecked={this.state.isRightClickContextMenuChecked}
               onChange={this.toggleOverrideCtxMenu}
             />
             Override Right Click Context Menu
@@ -110,7 +111,7 @@ class InitForm extends Component {
           <label>
             <input
               type="checkbox"
-              defaultChecked={this.state.isChecked}
+              defaultChecked={this.state.isThumbnailIndicatorChecked}
               onChange={this.toggleOverrideThumbIndicatorOverride}
             />
             Override Thumbnail Indicator 
