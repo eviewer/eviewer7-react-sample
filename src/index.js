@@ -5,6 +5,10 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import Form from "./form";
 import InitForm from "./InitForm";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap/dist/css/bootstrap-grid.css";
+import "bootstrap/dist/css/bootstrap-reboot.css";
+
 // import {EviewerLibComponent} from 'eviewer-lib'
 
 ReactDOM.render(

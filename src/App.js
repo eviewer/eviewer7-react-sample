@@ -23,6 +23,7 @@ class App extends Component {
       isUploadDivShow: false,
       isGetDocumentInfo: false,
       isGetPageInfo: false,
+      isRotateByAngle: false,
       isGetCurrentScale: false,
       isGetCurrentRotation: false,
       isAddButtonShow: false,
@@ -96,7 +97,7 @@ class App extends Component {
     };
 
     this.state = { landingPgNo: 1 };
-    this.state = { hidePages: "", clientDocId: "" };
+    this.state = { hidePages: "", clientDocId: "", readOnly: false };
 
     this.selectedAnnotation = {
       name: "",
@@ -189,6 +190,7 @@ class App extends Component {
     this.docUrlArray = this.state.docURLs.split(";");
     this.docIndex = 0;
     // documentSrvc.closeAllDocuments();
+    let readOnly = this.state.readOnly === "true" ? true : false;
     if (this.props.overrideThumbIndicator) {
       documentSrvc
         .loadDocumentWithOptions(
@@ -202,6 +204,7 @@ class App extends Component {
             password: "",
             landingPage: this.state.landingPgNo,
             pageFilters: this.getPageVisibility(),
+            readOnly: readOnly,
             tabStyle: {
               // backgroundColor: "rgb(247, 247, 247)",
               // color: "black",
@@ -455,6 +458,13 @@ class App extends Component {
       .then((response) => {
         console.log(response);
       });
+  };
+
+  submitRotateByAngle = (event) => {
+    let angle = +this.state.rotateByAngle;
+    this.eViewerObj.editingService.rotateByAngle(angle).then((response) => {
+      console.log(response);
+    });
   };
 
   submitGetCurrentScale = (event) => {
@@ -759,6 +769,7 @@ class App extends Component {
       isUploadDivShow: false,
       isGetDocumentInfo: false,
       isGetPageInfo: false,
+      isRotateByAngle: false,
       isGetCurrentScale: false,
       isGetCurrentRotation: false,
       isgotoPageDivShow: false,
@@ -864,6 +875,10 @@ class App extends Component {
     this.setState({ pageRange: events.target.value });
   };
 
+  rotateByAngleValue = (events) => {
+    this.setState({ rotateByAngle: events.target.value });
+  };
+
   landingPageValue = (events) => {
     let no = parseInt(events.target.value, 10);
     if (isNaN(no)) {
@@ -878,6 +893,10 @@ class App extends Component {
 
   clientDocIdValue = (events) => {
     this.setState({ clientDocId: events.target.value });
+  };
+
+  readOnlyValue = (events) => {
+    this.setState({ readOnly: events.target.value });
   };
 
   annURLsValue = (events) => {
@@ -1147,6 +1166,9 @@ class App extends Component {
       case "getPageInfo":
         this.setState({ isGetPageInfo: true });
         break;
+      case "rotateByAngle":
+        this.setState({ isRotateByAngle: true });
+        break;
       case "getCurrentScale":
         this.setState({ isGetCurrentScale: true });
         break;
@@ -1180,6 +1202,28 @@ class App extends Component {
           console.log("rotateClockwise: " + response);
         });
         break;
+
+      case "rotateCounterClockwise":
+        this.eViewerObj.editingService
+          .rotateCounterClockwise()
+          .then((response) => {
+            console.log("rotateCounterClockwise: " + response);
+          });
+        break;
+
+      case "rotate180":
+        this.eViewerObj.editingService.rotate180().then((response) => {
+          console.log("rotate180: " + response);
+        });
+        break;
+
+      case "rotateByAngle":
+        let angle = +this.state.rotateByAngle;
+        this.eViewerObj.editingService.rotateByAngle(angle).then((response) => {
+          console.log("rotateByAngle: " + response);
+        });
+        break;
+
       case "fitToWidth":
         this.eViewerObj.editingService
           .zoomTo("Fit To Width")
@@ -2488,6 +2532,15 @@ class App extends Component {
               <option className="text-dark" value="rotateClockwise">
                 Rotate Right
               </option>
+              <option className="text-dark" value="rotateCounterClockwise">
+                Rotate Left
+              </option>
+              <option className="text-dark" value="rotate180">
+                Rotate 180
+              </option>
+              <option className="text-dark" value="rotateByAngle">
+                Rotate By Angle
+              </option>
               <option className="text-dark" value="fitToWidth">
                 FitToWidth
               </option>
@@ -2759,6 +2812,16 @@ class App extends Component {
                             placeholder="Client Doc ID"
                           />
                         </div>
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="readOnly"
+                            onChange={this.readOnlyValue}
+                            value={this.state.readOnly}
+                            placeholder="Read Only true or false"
+                          />
+                        </div>
                       </div>
                       <button
                         className="btn btn-primary"
@@ -2842,6 +2905,40 @@ class App extends Component {
                       <button
                         className="btn btn-primary"
                         onClick={this.submitGetPageInfo}
+                      >
+                        Submit
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isRotateByAngle === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="rotateByAngle"
+                            onChange={this.rotateByAngleValue}
+                            value={this.state.rotateByAngle}
+                            placeholder="90 or 180 or 270"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitRotateByAngle}
                       >
                         Submit
                       </button>

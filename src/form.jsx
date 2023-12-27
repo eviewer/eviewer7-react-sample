@@ -9,7 +9,9 @@ class Form extends Component {
     this.state = {
       viewerServerURL: this.props.viewerServerURL,
       serverUrl: "",
-      savingEndpoint: "",
+      savingEndpoint: (docSaveObj) => {
+        console.info(docSaveObj);
+      },
       ocrEndpoint: "",
       userName: this.props.userName,
       token: "",
@@ -39,9 +41,11 @@ class Form extends Component {
   // };
 
   handleInputsavingEndpoint = (event) => {
-    this.setState({
-      savingEndpoint: event.target.value,
-    });
+    if (event.target.value.length > 0) {
+	    this.setState({
+	      savingEndpoint: event.target.value,
+	    });
+    }
   };
   handleInputocrEndpoint = (event) => {
     this.setState({
