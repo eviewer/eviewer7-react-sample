@@ -60,6 +60,28 @@ class App extends Component {
       isShowSetDocMetadata: false,
     };
 
+    this.captionMap = new Map();
+    this.languageMap = new Map();
+    this.state = { selectedCaption: false };
+    this.state = { captionArray: [{ file: null, language: "lg" }] };
+    this.languageSrclangMap = {
+      Select: "lg",
+      English: "en",
+      French: "fr",
+      Spanish: "es",
+      German: "de",
+      Italian: "it",
+      Portuguese: "pt",
+      Arabic: "ar",
+      Japanese: "ja",
+      Russian: "ru",
+      Hebrew: "he",
+      Chinese: "zh",
+      Korean: "ko",
+      Hindi: "hi",
+      Turkish: "tr",
+    };
+    this.captionData = null;
     this.state = { filterJSON: "" };
     this.state = { showHideOnlyPagesFilter: "" };
 
@@ -67,7 +89,7 @@ class App extends Component {
     this.state = {
       docURLs: "",
       annURLs: "",
-      captionURLs: "",
+      captionURLs: null,
       // userName: "",
     };
     this.state = {
@@ -246,6 +268,7 @@ class App extends Component {
                 }
               }
             },
+            captionUrls: this.state.captionURLs,
           }
         )
         .then((response) => {
@@ -267,6 +290,7 @@ class App extends Component {
             password: "",
             landingPage: this.state.landingPgNo,
             pageFilters: this.getPageVisibility(),
+            readOnly: readOnly,
             tabStyle: {
               //   backgroundColor: "white",
               //   color: "black",
@@ -283,6 +307,8 @@ class App extends Component {
               fileName: "some-document-description-INFOCUS",
               //   icon: "",
             },
+
+            captionUrls: this.state.captionURLs,
           }
         )
         .then((response) => {
@@ -301,6 +327,8 @@ class App extends Component {
     this.setState({
       isShowDocNavigators: true,
     });
+    this.setState({ docURLs: "" });
+    this.setState({ captionURLs: null });
   };
 
   getPageVisibility = () => {
@@ -533,7 +561,7 @@ class App extends Component {
           console.log(response);
           this.setState({ defaultDisabled: false });
           this.setState({ docURLs: "" });
-          this.setState({ captionURLs: "" });
+          this.setState({ captionURLs: null });
           this.setState({ landingPgNo: 1 });
         });
     });
@@ -612,10 +640,11 @@ class App extends Component {
     documentSrvc
       .insertDocument(this.state.file, {
         pageFilters: this.getPageVisibility(),
-        captionFiles: this.state.captionFiles,
+        captionMap: this.captionData,
       })
       .then((response) => {
         this.setState({ defaultDisabled: true });
+        this.captionData = null;        
         console.log("insertDocument: " + response);
       });
 
@@ -626,10 +655,71 @@ class App extends Component {
     this.disableAllDiv();
   };
 
+  submitCaptionDetail = () => {
+    const captionObj = {
+      languageMap: undefined,
+      captionMap: undefined,
+    };
+
+    captionObj.languageMap = this.languageMap;
+    captionObj.captionMap = this.captionMap;
+    this.captionData = captionObj;
+    this.setState({
+      selectedCaption: false,
+    });
+
+    this.languageMap = new Map();
+    this.captionMap = new Map();
+  };
+
+  openCaptionDialogueBox = () => {
+    this.setState({
+      selectedCaption: true,
+    });
+
+    this.setState({
+      captionArray: [{ file: null, language: "lg" }],
+    });
+    this.setState({ isCaptionDivShow: true });
+  };
+
   actualFilePath = (events) => {
     this.setState({
       file: events.target.files,
     });
+  };
+
+  onLanguageSelected = (events) => {
+    const language = events.target.value;
+    const languageId = events.target.id;
+    if (!this.languageMap.has(languageId)) {
+      this.languageMap.set(languageId, language);
+    } else {
+      this.languageMap.delete(languageId);
+      this.languageMap.set(languageId, language);
+    }
+  };
+
+  onCaptionFileSelected = (events) => {
+    const file = events.target.files;
+    const id = events.target.id;
+    let documentSrvc = this.eViewerObj.getDocumentService();
+    documentSrvc.getCaptionUrl(file[0], id, this.captionMap);
+  };
+
+  closePopup = () => {
+    this.setState({
+      selectedCaption: false,
+    });
+    this.setState({
+      captionArray: [{ file: null, language: "lg" }],
+    });
+  };
+
+  addMoreCaptionField = () => {
+    this.setState((prevState) => ({
+      captionArray: [...prevState.captionArray, { file: null, language: "lg" }],
+    }));
   };
 
   actualCaptionFilePath = (events) => {
@@ -2765,10 +2855,10 @@ class App extends Component {
                             type="text"
                             className="form-control form-control-sm"
                             id="caption"
-                            name="captionURLs"
+                            name="captionJSON"
                             onChange={this.captionURLsValue}
                             value={this.state.captionURLs}
-                            placeholder="Add Caption Url's"
+                            placeholder='[{"url": "CaptionUrls", "lang": "Language"}, {}]' /*Aqil => Generic_eVewer7_3942: Audio/Video: S1-P1*/
                             required
                           />
                         </div>
@@ -3322,17 +3412,14 @@ class App extends Component {
                           onChange={this.actualFilePath}
                           required
                         />
-
-                        <label for="caption">Add Caption File</label>
-                        <input
-                          type="file"
-                          className="form-control form-control-sm wrapword"
-                          id="caption"
-                          name="fileURL"
-                          onChange={this.actualCaptionFilePath}
-                          // required
-                          multiple
-                        />
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary"
+                          style={{ marginTop: "14px", fontSize: "inherit" }}
+                          onClick={this.openCaptionDialogueBox}
+                        >
+                          Add Caption File
+                        </button>
                         <div>
                           <input
                             type="text"
@@ -3504,7 +3591,7 @@ class App extends Component {
                       <div>
                         <input
                           type="text"
-                          class="form-control form-control-sm"
+                          className="form-control form-control-sm"
                           name="pageNo"
                           placeholder="e.g. '1'"
                           required
@@ -3600,6 +3687,7 @@ class App extends Component {
                           className="form-control form-control-sm"
                           name="hLocation"
                           placeholder="LEFT | RIGHT | CENTER"
+                          required
                         />
                       </div>
                     </div>
@@ -5838,6 +5926,112 @@ class App extends Component {
                         Submit
                       </button>
                       &nbsp;
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.selectedCaption === true ? (
+            <>
+              <div className="div-captionform">
+                <div
+                  className="login-box card caption-bg-info div-mst"
+                  style={{ width: "415px" }}
+                >
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.submitCaptionDetail}
+                    >
+                      <div id="captionsContainer">
+                        <div className="div-captionlabel">
+                          <label style={{ marginTop: "0px" }}>
+                            Add Caption File
+                          </label>
+                          <label style={{ marginTop: "0px" }}>
+                            Select Language
+                          </label>
+                        </div>
+                        {this.state.captionArray.map((caption, index) => (
+                          <div key={index}>
+                            <div
+                              style={{
+                                width: "100%",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                marginTop: "5px",
+                              }}
+                            >
+                              <div style={{ width: "55%" }}>
+                                <input
+                                  type="file"
+                                  className="form-control form-control-sm wrapword"
+                                  id={`captionInput${index}`}
+                                  name={`captions[${index}]`}
+                                  onChange={this.onCaptionFileSelected}
+                                />
+                              </div>
+
+                              <div style={{ width: "28%" }}>
+                                <select
+                                  id={`languageSelect${index}`}
+                                  className="form-control form-control-sm"
+                                  style={{ overflowY: "auto" }}
+                                  name={`languageSelect${index}`}
+                                  onChange={this.onLanguageSelected}
+                                >
+                                  {/* Add language options */}
+                                  {Object.entries(this.languageSrclangMap).map(
+                                    ([value, label]) => (
+                                      <option key={label} value={label}>
+                                        {value}
+                                      </option>
+                                    )
+                                  )}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="caption-button-div">
+                        <div>
+                          <button
+                            type="submit"
+                            className="btn btn-primary"
+                            style={{ marginTop: "20%" }}
+                          >
+                            Ok
+                          </button>
+                          &nbsp;
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            style={{ marginTop: "20%" }}
+                            onClick={this.closePopup}
+                          >
+                            Cancel
+                          </button>
+                          &nbsp;
+                        </div>
+
+                        <div>
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            style={{ marginTop: "20%" }}
+                            onClick={this.addMoreCaptionField}
+                          >
+                            Add More
+                          </button>
+                          &nbsp;
+                        </div>
+                      </div>
                     </form>
                   </div>
                 </div>

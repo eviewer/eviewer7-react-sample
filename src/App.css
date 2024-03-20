@@ -70,3 +70,49 @@
 .col-margin {
   margin-top: 18px;
 }
+
+.ev_inline {
+  display: inline;
+}
+
+.div-captionform {
+  position: absolute;
+  display: flex;
+  width: 100%;
+  height: -moz-fit-content;
+  height: fit-content;
+  top: 5%;
+  z-index: 99;
+}
+
+.caption-dialog-box {
+  width: 472px;
+  position: absolute;
+  left: 37.7%;
+  height: fit-content;
+}
+
+.caption-lang-div {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+
+.caption-button-div {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.div-captionlabel {
+  width: 100%;
+  display: flex;
+  justify-content: space-between; 
+  font-size: inherit;
+  color: white;
+}
+
+.caption-bg-info{
+  background-color: #397ed9 !important;
+}
