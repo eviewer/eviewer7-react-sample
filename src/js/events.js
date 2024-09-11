@@ -200,4 +200,14 @@ window._tabSwitch = function (outFocusViewerDocID,inFocusViewerDocID) {
   } catch (exp) {}
 };
 
+window._docSplit = function (baseDocID, splitDocID) {
+	console.log("OLD API: baseDocID: " + baseDocID + " splitDocID: " + splitDocID);
+}
 
+window._pageInvert = function (docID, pageNo) {
+	console.log("Page Invert DocID: " + docID + " - Page: " + pageNo);
+}
+
+window._docRedact = function (docID) {
+	console.log("_docRedact: " + docID);
+}

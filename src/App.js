@@ -58,6 +58,7 @@ class App extends Component {
       isSnippingToolDivShow: false,
       isDownloadDocDivShow: false,
       isShowSetDocMetadata: false,
+      isGotoDocument: false,
     };
 
     this.captionMap = new Map();
@@ -140,9 +141,18 @@ class App extends Component {
     this.loadViewer();
   }
 
+  inputFieldDirectionSetMethod() {
+    if (navigator.language.includes("ar")) {
+      const inputs = document.querySelectorAll('input[type="text"]');
+      inputs.forEach((input) => {
+        input.dir = "rtl";
+      });
+    }
+  }
+
   async loadViewer() {
     this.eViewerObj = new eViewerApp(this.props.userName);
-
+    this.inputFieldDirectionSetMethod();
     const options = {
       contextMenuOptions: {
         overrideContextMenus: this.props.overrideCtxMenu,
@@ -164,7 +174,11 @@ class App extends Component {
           this.licenseKey,
           this.props.viewerServerURL
         );
-      });
+      })
+      .then(() =>
+        this.eViewerObj.addContentSecurityPolicy(this.props.contentSecurity)
+      )
+      .then(() => this.registerCallBackFunctions());
     await import("@mstechusa/eviewer7/styles.css");
     await import("@mstechusa/eviewer7/scripts");
     await import("@mstechusa/eviewer7/runtime");
@@ -183,6 +197,177 @@ class App extends Component {
         console.log("inFocus " + inFocus);
       });
     }, 100);
+  }
+
+  registerCallBackFunctions = () => {
+    this.callBackAPIService = this.eViewerObj.getCallBackAPIService();
+
+    this.callBackAPIService.setPageChangedCallback((docID, pageNo) => {
+      console.log("pageChanged " + docID + " " + " current pageNo " + pageNo);
+    });
+
+    this.callBackAPIService.setDocLoadCompleteCallback((docInfo) => {
+      console.log("docLoadComplete Info Below: ");
+      console.log(docInfo);
+    });
+
+    this.callBackAPIService.setFirstPageRenderedCallback((docID, time) => {
+      console.log(
+        "firstPageRendered for documentID: " + docID + " in " + time + "ms"
+      );
+    });
+
+    this.callBackAPIService.setCustomButtonClickedCallback((operation) => {
+      console.log("Mesage from react app: " + operation);
+    });
+
+    this.callBackAPIService.setDocSaveCompleteCallback((docID, response) => {
+      console.log("docSaveComplete: " + docID + " response: " + response);
+    });
+
+    this.callBackAPIService.setDocSplitCallback((baseDocID, splitDocID) => {
+      return new Promise((resolve, reject) => {
+        console.log("baseDocID: " + baseDocID + " splitDocID: " + splitDocID);
+        // // Auto save for Deloitte Use Case Only
+        // let requireDataInResponse = true;
+        // this.eViewerObj.getDocumentService()
+        //   .saveDocuments([baseDocID, splitDocID], requireDataInResponse)
+        //   .then((response) => {
+        //     // too much memory consumtion
+        //     // console.log(response);
+        //     this.logDocuments(response);
+        //     resolve("FINISHED SPLITTING");
+        //   });
+        resolve("FINISHED SPLITTING");
+      });
+    });
+
+    this.callBackAPIService.setDocDroppedCallback((docID) => {
+      console.log("docDropped: " + docID);
+    });
+
+    this.callBackAPIService.setAnnCreatedCallback((docID, annID, pageNo) => {
+      console.log(
+        "annCreated: docID " + docID + " annID: " + annID + " pageNo: " + pageNo
+      );
+    });
+
+    this.callBackAPIService.setAnnDeletedCallback((docID, annID, pageNo) => {
+      console.log(
+        "annDeleted: docID " + docID + " annID: " + annID + " pageNo: " + pageNo
+      );
+    });
+
+    this.callBackAPIService.setAnnPropUpdatedCallback(
+      (docID, pageNo, annID, annProperty) => {
+        console.log(
+          "annPropUpdated: docID " +
+            docID +
+            " annID: " +
+            annID +
+            " annProperty: " +
+            annProperty
+        );
+      }
+    );
+
+    this.callBackAPIService.setWmPropUpdatedCallback((docId, wmId) => {
+      console.log("wmPropUpdated: docID " + docId + " wmID: " + wmId);
+    });
+
+    this.callBackAPIService.setButtonAnnClickedCallback(
+      (docID, annID, pageNo, buttonText) => {
+        console.log(
+          "buttonAnnClicked: docID " +
+            docID +
+            " annID: " +
+            annID +
+            " pageNo: " +
+            pageNo +
+            " buttonText: " +
+            buttonText
+        );
+      }
+    );
+
+    this.callBackAPIService.setDocExportedCallback((docID, selectedOption) => {
+      console.log(
+        "docExported: " + docID + " selectedOption: " + selectedOption
+      );
+    });
+
+    this.callBackAPIService.setPageDeletedCallback((docID, pageNo) => {
+      console.log("pageDeleted: " + docID + " current pageNo: " + pageNo);
+    });
+
+    this.callBackAPIService.setPageCutCallback((docID, pageNo) => {
+      console.log("pageCut: " + docID + " currnet pageNo: " + pageNo);
+    });
+
+    this.callBackAPIService.setPageCopiedCallback((docID, pageNo) => {
+      console.log("pageCopied: " + docID + " current pageNo: " + pageNo);
+    });
+
+    this.callBackAPIService.setPagePastedCallback((docID, pageNo) => {
+      console.log("pagePasted: " + docID + " current pageNo: " + pageNo);
+    });
+
+    this.callBackAPIService.setTextSelectedCallback((response) => {
+      console.log(response);
+    });
+
+    this.callBackAPIService.setNewCertificateCallback((certificate) => {
+      console.log(certificate);
+    });
+
+    this.callBackAPIService.setUpdateDefaultCertificateCallback(
+      (certificate) => {
+        console.log(certificate);
+      }
+    );
+
+    this.callBackAPIService.setNewAppearanceCallback((appearance) => {
+      console.log(appearance);
+    });
+
+    this.callBackAPIService.setPreferenceUpdateCallback((preferenceData) => {
+      console.log(preferenceData);
+    });
+
+    this.callBackAPIService.setZoomChangeCallback((zoomData) => {
+      console.log(zoomData);
+    });
+
+    this.callBackAPIService.setOnContextMenuCallback((info) => {
+      console.log(info);
+    });
+
+    this.callBackAPIService.setDocRedactCallback((docId) => {
+      console.log("redactUpdated: docID " + docId);
+    });
+
+    this.callBackAPIService.setTabSwitchCallback(
+      (outFocusViewerDocID, inFocusViewerDocID) => {
+        console.log("OutFocus ViewerDocId : " + outFocusViewerDocID);
+        console.log("InFocus ViewerDocId: " + inFocusViewerDocID);
+      }
+    );
+
+    this.callBackAPIService.setRotationCallback((docId, pageNo, rotation) => {
+      console.log(
+        "docId: " + docId + " pageNo " + pageNo + " rotation " + rotation * 90
+      );
+    });
+  };
+
+  logDocuments(docsArray) {
+    const loggableArray = docsArray.map((doc) => ({
+      ...doc,
+      docContent: `Uint8Array(${doc.docContent.length})`,
+      annContent: `Uint8Array(${doc.annContent.length})`,
+    }));
+
+    console.log(loggableArray);
   }
 
   submitUploadDetail = (event) => {
@@ -348,6 +533,14 @@ class App extends Component {
       .getDocumentInfo(this.state.docId)
       .then((response) => {
         console.log(response);
+      });
+  };
+
+  submitGotoDocument = (event) => {
+    this.eViewerObj.documentService
+      .gotoDocument(this.state.docId)
+      .then((response) => {
+        console.log("DocumentId " + response);
       });
   };
 
@@ -703,8 +896,30 @@ class App extends Component {
   onCaptionFileSelected = (events) => {
     const file = events.target.files;
     const id = events.target.id;
-    let documentSrvc = this.eViewerObj.getDocumentService();
-    documentSrvc.getCaptionUrl(file[0], id, this.captionMap);
+    this.loadCaptionsByURL(file[0], id);
+  };
+
+  loadCaptionsByURL = (file, id) => {
+    const captionObj = {
+      file: undefined,
+      captionUrl: undefined,
+    };
+    const captionMap = this.captionMap;
+    let reader = new FileReader();
+    reader.onload = (event) => {
+      const fileContent = event.target.result;
+      captionObj.file = file;
+      captionObj.captionUrl = fileContent;
+
+      if (!captionMap.has(id)) {
+        captionMap.set(id, captionObj);
+      } else {
+        captionMap.delete(id);
+        captionMap.set(id, captionObj);
+      }
+    };
+
+    reader.readAsDataURL(file);
   };
 
   closePopup = () => {
@@ -895,6 +1110,7 @@ class App extends Component {
       isDownloadDocDivShow: false,
       isShowSetDocMetadata: false,
       showAlignThumbnailForm: false,
+      isGotoDocument: false,
     });
   };
 
@@ -1087,6 +1303,9 @@ class App extends Component {
     this.setState({ value: event.target.value });
     this.disableAllDiv();
     this.setAnnDiv();
+    setTimeout(() => {
+      this.inputFieldDirectionSetMethod();
+    });
     switch (event.target.value) {
       case "uploadDocument":
         this.setState({ isUploadDivShow: true });
@@ -1266,7 +1485,13 @@ class App extends Component {
         this.setState({ isGetCurrentRotation: true });
         break;
       case "saveDoc":
-        this.eViewerObj.documentService.saveDocument();
+        const returnDataInResponse = false;
+        this.eViewerObj.documentService
+          .saveDocument(returnDataInResponse)
+          .then((response) => {
+            console.log("Promise Resolved for saveDocument: ");
+            console.info(response);
+          });
         break;
       case "saveAllDoc":
         this.eViewerObj.documentService.saveAllDocuments();
@@ -1348,6 +1573,12 @@ class App extends Component {
 
       case "deletePage":
         this.eViewerObj.editingService.deletePage().then((response) => {
+          this.eViewerObj.documentService
+            .getCurrentPage()
+            .then((currentPage) => {
+              console.log("currentPage After detetePage: ");
+              console.info(currentPage);
+            });
           console.log("deletePage: " + response);
         });
         break;
@@ -1366,6 +1597,12 @@ class App extends Component {
 
       case "pastePage":
         this.eViewerObj.editingService.pastePage().then((response) => {
+          this.eViewerObj.documentService
+            .getCurrentPage()
+            .then((currentPage) => {
+              console.log("currentPage After pastePage: ");
+              console.info(currentPage);
+            });
           console.log("pastePage: " + response);
         });
         break;
@@ -1535,6 +1772,37 @@ class App extends Component {
       case "getAllMetadata":
         this.getAllDocMetadata();
         break;
+
+      case "gotoDocument":
+        this.setState({ isGotoDocument: true });
+        break;
+
+      case "gotoNextDocument":
+        this.eViewerObj.documentService.gotoNextDocument().then((response) => {
+          console.log("DocumentId: " + response);
+        });
+        break;
+
+      case "gotoPreviousDocument":
+        this.eViewerObj.documentService
+          .gotoPreviousDocument()
+          .then((response) => {
+            console.log("DocumentId: " + response);
+          });
+        break;
+
+      case "gotoFirstDocument":
+        this.eViewerObj.documentService.gotoFirstDocument().then((response) => {
+          console.log("DocumentId: " + response);
+        });
+        break;
+
+      case "gotoLastDocument":
+        this.eViewerObj.documentService.gotoLastDocument().then((response) => {
+          console.log("DocumentId: " + response);
+        });
+        break;
+
       default:
         break;
     }
@@ -2482,7 +2750,7 @@ class App extends Component {
       pageno: pageNo,
     };
 
-    this.eViewerObj.annotationService.drawLinkAnnotation(annId, options);
+    this.eViewerObj.annotationService.addLinkToAnnotation(annId, options);
 
     this.disableAllDiv();
     this.setState({ linkUrl: false });
@@ -2647,13 +2915,13 @@ class App extends Component {
                 DeletePage
               </option>
               <option className="text-dark" value="copyPage">
-                CopyPage
+                CopyPages
               </option>
               <option className="text-dark" value="copyToClipboard">
                 CopyToClipboard
               </option>
               <option className="text-dark" value="cutPage">
-                CutPage
+                CutPages
               </option>
               <option className="text-dark" value="pastePage">
                 PastePage
@@ -2791,13 +3059,13 @@ class App extends Component {
                 Redact Area
               </option>
               <option class="text-dark" value="redactWord">
-                Redact Word
+                Search & Redact
               </option>
               <option class="text-dark" value="clearRedaction">
                 Clear Redactions
               </option>
               <option class="text-dark" value="redactByExpression">
-                Search and Redact Expressions
+                Smart Redaction
               </option>
               <option class="text-dark" value="redactionDetails">
                 Get Redaction Details
@@ -2828,6 +3096,21 @@ class App extends Component {
               </option>
               <option className="text-dark" value="alignThumbnail">
                 Align Thumbnails
+              </option>
+              <option className="text-dark" value="gotoDocument">
+                Goto Document
+              </option>
+              <option className="text-dark" value="gotoNextDocument">
+                Goto Next Document
+              </option>
+              <option className="text-dark" value="gotoPreviousDocument">
+                Goto Previous Document
+              </option>
+              <option className="text-dark" value="gotoFirstDocument">
+                Goto First Document
+              </option>
+              <option className="text-dark" value="gotoLastDocument">
+                Goto Last Document
               </option>
             </select>
           </div>
@@ -3679,6 +3962,7 @@ class App extends Component {
                           className="form-control form-control-sm"
                           name="vLocation"
                           placeholder="TOP | CENTER | BOTTOM"
+                          required
                         />
                       </div>
                       <div>
@@ -6041,6 +6325,40 @@ class App extends Component {
             ""
           )}
 
+          {this.state.isGotoDocument === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="docId"
+                            onChange={this.docIdValue}
+                            value={this.state.docId}
+                            placeholder="Document ID"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitGotoDocument}
+                      >
+                        Submit
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
           <hr></hr>
           {}
           <div

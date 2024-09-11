@@ -52,6 +52,24 @@ class Form extends Component {
       ocrEndpoint: event.target.value,
     });
   };
+
+  handleUserPrefUrl = (event) => {
+    this.setState({
+      userPrefEndPoint: event.target.value,
+    });
+  };
+
+  handleShortcutPrefPrefUrl = (event) => {
+    this.setState({
+      shortcutPrefEndPoint: event.target.value,
+    });
+  };
+
+  handleRegularExpression = (event) => {
+    this.setState({
+      regularExpression: event.target.value,
+    });
+  };
   // handleInputuserName = (event) => {
   //   this.setState({
   //     userName: event.target.value,
@@ -76,6 +94,14 @@ class Form extends Component {
 
   setViewerOptions = () => {
     let eViewerObj = new eViewerApp(this.props.userName);
+    const self = this;
+    if (this.state.shortcutPrefEndPoint != null) {
+      this.state.defaultShortcutPrefJSON = this.state.shortcutPrefEndPoint;
+    }
+
+    if (this.state.userPrefEndPoint != null) {
+      this.state.defaultPrefJSON = this.state.userPrefEndPoint;
+    }
 
     let viewerPrefSrvc = eViewerObj.getViewerPreferenceService();
     let preferencesPromise = viewerPrefSrvc.getUserPreferences(
@@ -221,6 +247,48 @@ class Form extends Component {
                 </div>
               }
               {
+                <div className="form-group">
+                  <div>User Preference URL</div>
+                  <input
+                    type="text"
+                    className="form-control form-control-sm wrapword"
+                    id="userPrefUrl"
+                    name="userPrefUrlPath"
+                    placeholder="User Preference URL"
+                    onChange={this.handleUserPrefUrl}
+                    required
+                  />
+                </div>
+              }
+              {
+                <div className="form-group">
+                  <div>Shortcut Preference URL</div>
+                  <input
+                    type="text"
+                    className="form-control form-control-sm wrapword"
+                    id="shortcutPrefUrl"
+                    name="shortcutPrefUrlPath"
+                    placeholder="Shortcut Preference URL"
+                    onChange={this.handleShortcutPrefPrefUrl}
+                    required
+                  />
+                </div>
+              }
+              {
+                <div className="form-group">
+                  <div>Regular Expression</div>
+                  <input
+                    type="text"
+                    className="form-control form-control-sm wrapword"
+                    id="regExp"
+                    name="regExpPath"
+                    placeholder="Regular Expression"
+                    onChange={this.handleRegularExpression}
+                    required
+                  />
+                </div>
+              }
+              {
                 <div className="form-group" style={{ display: "flex" }}>
                   <input
                     type="checkbox"
@@ -251,6 +319,8 @@ class Form extends Component {
             licenseKey={this.props.licenseKey}
             overrideCtxMenu={this.props.overrideCtxMenu}
             overrideThumbIndicator={this.props.overrideThumbIndicator}
+            overrideHyperLink={this.props.overrideEnableHyperLink}
+            contentSecurity={this.props.contentSecurity}
           />
         </div>
       </>

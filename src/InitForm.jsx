@@ -10,8 +10,10 @@ class InitForm extends Component {
     this.state = {
       showForm: false,
       isThumbnailIndicatorChecked: true,
-      isRightClickContextMenuChecked: true, 
+      operationPerformUsingRegExField: true,
+      isRightClickContextMenuChecked: true,
       userName: "demo user",
+      contentSecurity: "",
       licenseKey: "PROVIDED BY MST",
       viewerServerURL: "",
     };
@@ -23,8 +25,10 @@ class InitForm extends Component {
         licenseKey={this.state.licenseKey}
         overrideCtxMenu={this.state.isRightClickContextMenuChecked}
         overrideThumbIndicator={this.state.isThumbnailIndicatorChecked}
+        overrideEnableHyperLink= {this.state.operationPerformUsingRegExField}
         userName={this.state.userName}
         viewerServerURL={this.state.viewerServerURL}
+        contentSecurity = {this.state.contentSecurity}
       />
     );
   };
@@ -36,6 +40,12 @@ class InitForm extends Component {
   handleInputUserName = (event) => {
     this.setState({
       userName: event.target.value,
+    });
+  };
+
+  handleContentSecurity = (event) => {
+    this.setState({
+      contentSecurity: event.target.value,
     });
   };
 
@@ -63,7 +73,16 @@ class InitForm extends Component {
     });
   };
 
+  toggleOverrideEnableHyperLink = () => {
+    this.setState({
+      operationPerformUsingRegExField: !this.state.operationPerformUsingRegExField,
+    })
+  }
+
   showInitForm = () => {
+    if(!window.inputFieldDirectionSet && navigator.language.includes("ar")) {
+      setTimeout(this.inputFieldDirectionSetMethod);
+    }
     return (
       <div className="div-mst">
         {" "}
@@ -98,6 +117,16 @@ class InitForm extends Component {
           />
         </div>
         <div>
+          <input
+            type="text"
+            className="form-control form-control-sm"
+            name="Content Security Policy"
+            value={this.state.contentSecurity}
+            onChange={this.handleContentSecurity}
+            placeholder="Content Security Policy"
+          />
+        </div>
+        <div>
           <label>
             <input
               type="checkbox"
@@ -118,6 +147,16 @@ class InitForm extends Component {
           </label>
         </div>
         <div>
+        <label>
+            <input
+              type="checkbox"
+              defaultChecked={this.state.operationPerformUsingRegExField}
+              onChange={this.toggleOverrideEnableHyperLink}
+            />
+            Override Enable HyperLinks
+          </label>
+        </div>  
+        <div>
           <button className="btn btn-primary" onClick={this.handleSubmit}>
             Load Viewer
           </button>{" "}
@@ -126,6 +165,13 @@ class InitForm extends Component {
     );
   };
 
+  inputFieldDirectionSetMethod () {
+    const inputs = document.querySelectorAll('input[type="text"]');
+    inputs.forEach(input => {
+      input.dir = "rtl";
+    })
+    this.inputFieldDirectionSet = true;
+  }
   render() {
     return (
       <div>{this.state.showForm ? this.showForm() : this.showInitForm()}</div>
