@@ -211,3 +211,11 @@ window._pageInvert = function (docID, pageNo) {
 window._docRedact = function (docID) {
 	console.log("_docRedact: " + docID);
 }
+
+window._drawingModeChange = function(drawingMode) {
+  try {
+    console.log("Current drawing mode: " + drawingMode);
+  } catch(exp) {
+    
+  }
+};

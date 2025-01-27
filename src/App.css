@@ -116,3 +116,19 @@
 .caption-bg-info{
   background-color: #397ed9 !important;
 }
+
+.group-info-label {
+  margin-top: 11px !important;
+  margin-bottom: 3px !important;
+  font-size: 13px !important;
+  color: #fdfbfb !important;
+  margin-left: 3px !important;
+}
+
+.mode-names-options {
+  margin-top: 2px;
+  margin-bottom: 3px;
+  font-size: 13px;
+  color: #fdfbfb;
+  margin-left: 3px;
+}

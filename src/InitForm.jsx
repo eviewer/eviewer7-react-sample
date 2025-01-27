@@ -4,6 +4,7 @@ import ReactDOM from "react-dom";
 import eViewerApp from "@mstechusa/eviewer7/js/eViewer7.js";
 import Form from "./form";
 
+window.inputFieldDirectionSet = false;
 class InitForm extends Component {
   constructor(props) {
     super(props);
@@ -12,6 +13,8 @@ class InitForm extends Component {
       isThumbnailIndicatorChecked: true,
       operationPerformUsingRegExField: true,
       isRightClickContextMenuChecked: true,
+      isDocumentumConnectorChecked: false,
+      isEnableSHortcutKeysWithoutClick: true,
       userName: "demo user",
       contentSecurity: "",
       licenseKey: "PROVIDED BY MST",
@@ -25,10 +28,12 @@ class InitForm extends Component {
         licenseKey={this.state.licenseKey}
         overrideCtxMenu={this.state.isRightClickContextMenuChecked}
         overrideThumbIndicator={this.state.isThumbnailIndicatorChecked}
-        overrideEnableHyperLink= {this.state.operationPerformUsingRegExField}
+        overrideEnableHyperLink={this.state.operationPerformUsingRegExField}
+        useDocumentumConnector= {this.state.isDocumentumConnectorChecked}
         userName={this.state.userName}
         viewerServerURL={this.state.viewerServerURL}
-        contentSecurity = {this.state.contentSecurity}
+        contentSecurity={this.state.contentSecurity}
+        enableShortcutWithoutClick = {this.state.isEnableSHortcutKeysWithoutClick}
       />
     );
   };
@@ -63,7 +68,15 @@ class InitForm extends Component {
 
   toggleOverrideCtxMenu = () => {
     this.setState({
-      isRightClickContextMenuChecked: !this.state.isRightClickContextMenuChecked,
+      isRightClickContextMenuChecked:
+        !this.state.isRightClickContextMenuChecked,
+    });
+  };
+
+  toggleEnableShortcutWithoutClick = () => {
+    this.setState({
+      isEnableSHortcutKeysWithoutClick:
+        !this.state.isEnableSHortcutKeysWithoutClick
     });
   };
 
@@ -73,14 +86,21 @@ class InitForm extends Component {
     });
   };
 
-  toggleOverrideEnableHyperLink = () => {
+  toggleDocumentumConnector = () => {
     this.setState({
-      operationPerformUsingRegExField: !this.state.operationPerformUsingRegExField,
-    })
+      isDocumentumConnectorChecked: !this.state.isDocumentumConnectorChecked,
+    });
   }
 
+  toggleOverrideEnableHyperLink = () => {
+    this.setState({
+      operationPerformUsingRegExField:
+        !this.state.operationPerformUsingRegExField,
+    });
+  };
+
   showInitForm = () => {
-    if(!window.inputFieldDirectionSet && navigator.language.includes("ar")) {
+    if (!window.inputFieldDirectionSet && navigator.language.includes("ar")) {
       setTimeout(this.inputFieldDirectionSetMethod);
     }
     return (
@@ -143,11 +163,21 @@ class InitForm extends Component {
               defaultChecked={this.state.isThumbnailIndicatorChecked}
               onChange={this.toggleOverrideThumbIndicatorOverride}
             />
-            Override Thumbnail Indicator 
+            Override Thumbnail Indicator
           </label>
         </div>
         <div>
-        <label>
+          <label>
+            <input
+              type="checkbox"
+              defaultChecked={this.state.isDocumentumConnectorChecked}
+              onChange={this.toggleDocumentumConnector}
+            />
+            Use Documentum Connector
+          </label>
+        </div>
+        <div>
+          <label>
             <input
               type="checkbox"
               defaultChecked={this.state.operationPerformUsingRegExField}
@@ -155,7 +185,17 @@ class InitForm extends Component {
             />
             Override Enable HyperLinks
           </label>
-        </div>  
+        </div>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              defaultChecked={this.state.isEnableSHortcutKeysWithoutClick}
+              onChange={this.toggleEnableShortcutWithoutClick}
+            />
+            Enable Shortcut keys over Viewer
+          </label>
+        </div> 
         <div>
           <button className="btn btn-primary" onClick={this.handleSubmit}>
             Load Viewer
@@ -165,11 +205,11 @@ class InitForm extends Component {
     );
   };
 
-  inputFieldDirectionSetMethod () {
+  inputFieldDirectionSetMethod() {
     const inputs = document.querySelectorAll('input[type="text"]');
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
       input.dir = "rtl";
-    })
+    });
     this.inputFieldDirectionSet = true;
   }
   render() {
