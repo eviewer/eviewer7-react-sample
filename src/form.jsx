@@ -14,40 +14,65 @@ class Form extends Component {
           reject();
         });
       },
+      setTabMenuHandler: (docID) => {
+        const self = this;
+        console.log("Document Id : " + docID);
+        return [
+          {
+            id: "closeDoc",
+            caption: "Close Document",
+            type: "menuitem",
+            onClick: function () {
+              self.tabMenuCloseDoc();
+            },
+            disabled: true,
+          },
+          { type: "separator" },
+          {
+            id: "closeAllDoc",
+            type: "menuitem",
+            caption: "Close All Documents",
+            onClick: function () {
+              self.tabMenuCloseAllDoc();
+            },
+            disabled: false,
+          },
+        ];
+      },
       savingEndpoint: (response) => {
         return new Promise((resolve, reject) => {
           console.info(response);
           const { clientDocID, docContent, annContent, annMimeType, mimeType } =
             response;
-  
+
           if (annMimeType === "application/octet-stream") {
             // Download TL
             const downloadType = "application/octet-stream";
             const tlfile = new Blob([annContent], {
               type: downloadType,
             });
-  
+
             const data = window.URL.createObjectURL(tlfile);
             const link = window.document.createElement("a");
             window.document.body.appendChild(link);
             link.href = data;
             link.download = "sample.t_l";
-            link.click();            
+            link.click();
             //
-  
+
             // const blob = new Blob([docContent], { type: mimeType });
             // const blobUrl = URL.createObjectURL(blob);
-  
+
             // // Create a link element
             // const link = window.document.createElement("a");
-  
+
             // // Set link's href to point to the Blob URL
             // link.href = blobUrl;
             // link.download = "test.tiff";
-  
+
             // // Append link to the body
             // window.document.body.appendChild(link);
-  
+
             // // Download blob programmatically as a file
             // link.click();
           }
@@ -85,9 +110,9 @@ class Form extends Component {
 
   handleInputsavingEndpoint = (event) => {
     if (event.target.value.length > 0) {
-	    this.setState({
-	      savingEndpoint: event.target.value,
-	    });
+      this.setState({
+        savingEndpoint: event.target.value,
+      });
     }
   };
   handleInputocrEndpoint = (event) => {
@@ -138,7 +163,41 @@ class Form extends Component {
     this.setState({
       savingEndpointRejectValue: event.target.checked,
     });
-  };  
+  };
+
+  tabMenuCloseDoc = () => {
+    return new Promise((resolve, reject) => {
+      let status = false;
+
+      if (this.eViewerObj === null) {
+        this.eViewerObj = new eViewerApp(this.props.userName);
+      }
+      this.eViewerObj.documentService.closeDocument("");
+      status = true;
+
+      if (status) {
+        resolve(true);
+      } else {
+        reject(false);
+      }
+    });
+  }
+
+  tabMenuCloseAllDoc = () => {
+    return new Promise((resolve, reject) => {
+      let status = false;
+      if (this.eViewerObj === null) {
+        this.eViewerObj = new eViewerApp(this.props.userName);
+      }
+      this.eViewerObj.documentService.closeAllDocuments("");
+      status = true;
+      if (status) {
+        resolve(true);
+      } else {
+        reject(false);
+      }
+    });
+  }
 
   setViewerOptions = () => {
     let eViewerObj = new eViewerApp(this.props.userName);
@@ -154,10 +213,11 @@ class Form extends Component {
     let viewerPrefSrvc = eViewerObj.getViewerPreferenceService();
     let preferencesPromise = viewerPrefSrvc.getUserPreferences(
       this.state.defaultPrefJSON,
-      this.state.defaultShortcutPrefJSON
+      this.state.defaultShortcutPrefJSON,
+      this.state.defaultAnnotationPrefJSON
     );
     preferencesPromise.then((preferences) => {
-      viewerPrefSrvc.setUserPreferences(JSON.stringify(preferences.userPreferences), JSON.stringify(preferences.shortcutPreferences));
+      viewerPrefSrvc.setUserPreferences(JSON.stringify(preferences.userPreferences), JSON.stringify(preferences.shortcutPreferences), preferences.userPreferences.annotationPreference);
     });
   };
 
@@ -193,6 +253,22 @@ class Form extends Component {
     };
   };
 
+  annotationPrefJSONPath = (events) => {
+    let reader = new FileReader();
+    reader.readAsDataURL(events.target.files[0]);
+    reader.onload = (events) => {
+      let defPrefJSON = events.target.result;
+      if (events.target.result !== undefined) {
+        defPrefJSON = atob(
+          events.target.result.split("data:application/json;base64,")[1]
+        );
+      }
+      this.setState({
+        defaultAnnotationPrefJSON: JSON.parse(defPrefJSON),
+      });
+    };
+  };
+
   handleSubmit = (event) => {
     this.setViewerOptions();
     this.eViewerObj = new eViewerApp(this.state.userName);
@@ -213,21 +289,8 @@ class Form extends Component {
     let sigSrvc = this.eViewerObj.getSignatureService();
     sigSrvc.setAvailableAppearances(this.state.appearanceList);
     sigSrvc.setAvailableCertificates(this.state.savedCertificates);
-    this.eViewerObj.setDocumentEndPointOptions(
-      options,
-      this.state.viewerServerURL,
-      this.state.savingEndpoint,
-      this.state.ocrEndpoint
-    );
 
-    if (this.props.useDocumentumConnector) {
-      this.eViewerObj
-        .getDocumentService()
-        .setDocumentumCredentials("postgres", "password", "documentum")
-        .then((res) => {
-          console.log(res);
-        });
-    }
+    // this.eViewerObj.setTabMenuHandler(this.state.setTabMenuHandler);
 
     if (this.state.savingEndpointRejectValue === true) {
       this.eViewerObj.setDocumentEndPointOptions(
@@ -238,9 +301,7 @@ class Form extends Component {
         this.state.ocrEndpoint,
         this.state.hideToolBar
       );
-  
-    }
-    else {
+    } else {
       this.eViewerObj.setDocumentEndPointOptions(
         options,
         this.state.viewerServerURL,
@@ -249,8 +310,17 @@ class Form extends Component {
         this.state.ocrEndpoint,
         this.state.hideToolBar
       );
-  
     }
+
+    if (this.props.useDocumentumConnector) {
+      this.eViewerObj
+        .getDocumentService()
+        .setDocumentumCredentials(this.state.userName, this.state.password, "documentum")
+        .then((res) => {
+          console.log(res);
+        });
+    }
+
     this.setState({
       isViewerLoaded: true,
     });
@@ -316,13 +386,28 @@ class Form extends Component {
               }
               {
                 <div className="form-group">
-                  <div style={{ color: "#3f2626" }}>Shortcut Preference JSON</div>
+                  <div style={{ color: "#3f2626" }}>
+                    Shortcut Preference JSON
+                  </div>
                   <input
                     type="file"
                     className="form-control form-control-sm wrapword"
                     id="shortcutPrefJSON"
                     name="shortcutPrefJSONPath"
                     onChange={this.shortcutPrefJSONPath}
+                    required
+                  />
+                </div>
+              }
+              {
+                <div className="form-group">
+                  <div style={{ color: "#3f2626" }}>Annotation Preference JSON</div>
+                  <input
+                    type="file"
+                    className="form-control form-control-sm wrapword"
+                    id="AnnotationPrefJSON"
+                    name="annotationPrefJSONPath"
+                    onChange={this.annotationPrefJSONPath}
                     required
                   />
                 </div>
@@ -343,7 +428,9 @@ class Form extends Component {
               }
               {
                 <div className="form-group">
-                  <div style={{ color: "#3f2626" }}>Shortcut Preference URL</div>
+                  <div style={{ color: "#3f2626" }}>
+                    Shortcut Preference URL
+                  </div>
                   <input
                     type="text"
                     className="form-control form-control-sm wrapword"
@@ -377,7 +464,9 @@ class Form extends Component {
                     name="savePayloadType"
                     onChange={this.handleSavePayloadType}
                   />
-                  <div style={{ color: "#3f2626" }} >&nbsp;SavePayloadType - multipart/form-data</div>
+                  <div style={{ color: "#3f2626" }}>
+                    &nbsp;SavePayloadType - multipart/form-data
+                  </div>
                 </div>
               }
               {
@@ -388,9 +477,12 @@ class Form extends Component {
                     name="saveEndpointReject"
                     onChange={this.handlesaveEndpointReject}
                   />
-                  <div  style={{ color: "#3f2626" }} > &nbsp;saveDocumentEndpointReject</div>
+                  <div style={{ color: "#3f2626" }}>
+                    {" "}
+                    &nbsp;saveDocumentEndpointReject
+                  </div>
                 </div>
-              }              
+              }
               <button className="btn btn-primary" onClick={this.handleSubmit}>
                 Submit
               </button>
@@ -408,6 +500,7 @@ class Form extends Component {
           <App
             viewerServerURL={this.props.viewerServerURL}
             userName={this.props.userName}
+            password={this.props.password}
             licenseKey={this.props.licenseKey}
             overrideCtxMenu={this.props.overrideCtxMenu}
             overrideThumbIndicator={this.props.overrideThumbIndicator}
@@ -415,6 +508,7 @@ class Form extends Component {
             contentSecurity={this.props.contentSecurity}
             documentumConnector={this.props.useDocumentumConnector}
             enableShortcutWithoutClick={this.props.enableShortcutWithoutClick}
+            registerCallbackFunctions={this.props.registerCallbackFunctions}
           />
         </div>
       </>

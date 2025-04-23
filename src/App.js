@@ -62,6 +62,8 @@ class App extends Component {
       isGotoNextDocument: false,
       isGetXFDFannData: false,
       xfdfAnnData: null,
+      showUndoForm: false,
+      showRedoForm: false,
     };
 
     this.captionMap = new Map();
@@ -114,6 +116,7 @@ class App extends Component {
       file: null,
       captionFiles: null,
     };
+
     this.state = {
       textSearch: "",
     };
@@ -186,7 +189,16 @@ class App extends Component {
       .then(() =>
         this.eViewerObj.addContentSecurityPolicy(this.props.contentSecurity)
       )
-      .then(() => this.registerCallBackFunctions());
+      .then(() => {
+        if(this.props.registerCallbackFunctions) {
+          this.registerCallBackFunctions();
+        }
+      })
+      .then(() => {
+        if(this.props.enableShortcutWithoutClick) {
+          this.eViewerObj.enableShortcutWithoutClick();
+        }
+      });
     await import("@mstechusa/eviewer7/styles.css");
     await import("@mstechusa/eviewer7/scripts");
     await import("@mstechusa/eviewer7/runtime");
@@ -356,8 +368,10 @@ class App extends Component {
 
     this.callBackAPIService.setTabSwitchCallback(
       (outFocusViewerDocID, inFocusViewerDocID) => {
-        console.log("OutFocus ViewerDocId : " + outFocusViewerDocID);
-        console.log("InFocus ViewerDocId: " + inFocusViewerDocID);
+        console.log({
+          Outfocus_ViewerDocID: outFocusViewerDocID,
+          Infocus_ViewerDocID: inFocusViewerDocID,
+        });
       }
     );
 
@@ -369,6 +383,16 @@ class App extends Component {
 
     this.callBackAPIService.setDrawingModeChangeCallback((modeName) => {
       console.log("Current drawing mode: " + modeName);
+    });
+
+    this.callBackAPIService.setPageInvertCallback((docID, pageNo) => {
+      console.log("Page Invert DocID: " + docID + " - Page: " + pageNo);
+    });
+
+    this.callBackAPIService.setDocRedactCallback((docId) => {
+        try {
+          console.log("redactUpdated: docID " + docId);
+        } catch (exp) {}
     });
   };
 
@@ -568,6 +592,18 @@ class App extends Component {
       .then((response) => {
         console.log("DocumentId " + response);
       });
+  };
+  submitUndo = (event) => {
+    this.eViewerObj.documentService.undo(this.state.docId).then((response) => {
+      console.log("DocumentId " + response);
+    });
+    this.disableAllDiv();
+  };
+  submitRedo = (event) => {
+    this.eViewerObj.documentService.redo(this.state.docId).then((response) => {
+      console.log("DocumentId " + response);
+    });
+    this.disableAllDiv();
   };
 
   docTabIcon = (events) => {
@@ -1186,6 +1222,8 @@ class App extends Component {
 		isGetXFDFannData: false,
       xfdfAnnData: null,
       showSetDrawingMode: false,
+      showUndoForm: false,
+      showRedoForm: false,
     });
   };
 
@@ -1952,6 +1990,15 @@ class App extends Component {
         this.eViewerObj.annotationService.getDrawingMode().then((response) => {
           console.log(response);
         });
+        break;
+
+      case "undo":
+        // this.setState({ showUndoForm: true });
+        this.submitUndo();
+        break;
+      case "redo":
+        // this.setState({ showRedoForm: true });
+        this.submitRedo();
         break;
 
       default:
@@ -2824,6 +2871,7 @@ class App extends Component {
     this.eViewerObj.watermarkService
       .editWatermark(properties)
       .then((response) => {
+        console.log(properties.id);
         console.log(response);
       });
     this.setState({ showEditWatermarkForm: false });
@@ -3378,6 +3426,12 @@ class App extends Component {
               </option>
               <option className="text-dark" value="getDrawingMode">
                 Get Drawing Mode
+              </option>
+              <option className="text-dark" value="undo">
+                Undo
+              </option>
+              <option className="text-dark" value="redo">
+                Redo
               </option>
             </select>
           </div>
@@ -4766,8 +4820,8 @@ class App extends Component {
                           <input
                             type="text"
                             className="form-control form-control-sm col-sm-3"
-                            name="opacity"
-                            placeholder="opacity"
+                            name="borderOpacity"
+                            placeholder="borderOpacity"
                           />
                         </>
                       )}
@@ -6932,6 +6986,8 @@ class App extends Component {
                           <option value="Polygon">Polygon</option>
                           <option value="Cloud">Cloud</option>
                           <option value="Action Button">Action Button</option>
+                          <option value="Checkpoint">Checkpoint</option>
+                          <option value="Sticky Note">Sticky Note</option>
                           <option value="none">None</option>
                         </select>
                       </div>

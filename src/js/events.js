@@ -62,14 +62,9 @@ window._annPropUpdated = function (docID, pageNo, annID, annProperty) {
 
 window._wmPropUpdated = function (docId, wmId) {
   try {
-    console.log(
-      "wmPropUpdated: docID " +
-        docId +
-        " wmID: " +
-        wmId 
-    );
+    console.log("wmPropUpdated: docID " + docId + " wmID: " + wmId);
   } catch (exp) {}
-}
+};
 
 window._buttonAnnClicked = function (docID, annID, pageNo, buttonText) {
   try {
@@ -192,30 +187,31 @@ window._onContextMenu = function (info) {
   } catch (exp) {}
 };
 
-
-window._tabSwitch = function (outFocusViewerDocID,inFocusViewerDocID) {
+window._tabSwitch = function (outFocusViewerDocID, inFocusViewerDocID) {
   try {
-    console.log("OutFocus ViewerDocId : " + outFocusViewerDocID);
-    console.log("InFocus ViewerDocId: " + inFocusViewerDocID);
+    console.log({
+      Outfocus_ViewerDocID: outFocusViewerDocID,
+      Infocus_ViewerDocID: inFocusViewerDocID,
+    });
   } catch (exp) {}
 };
 
 window._docSplit = function (baseDocID, splitDocID) {
-	console.log("OLD API: baseDocID: " + baseDocID + " splitDocID: " + splitDocID);
-}
+  console.log(
+    "OLD API: baseDocID: " + baseDocID + " splitDocID: " + splitDocID
+  );
+};
 
 window._pageInvert = function (docID, pageNo) {
-	console.log("Page Invert DocID: " + docID + " - Page: " + pageNo);
-}
+  console.log("Page Invert DocID: " + docID + " - Page: " + pageNo);
+};
 
 window._docRedact = function (docID) {
-	console.log("_docRedact: " + docID);
-}
+  console.log("_docRedact: " + docID);
+};
 
-window._drawingModeChange = function(drawingMode) {
+window._drawingModeChange = function (drawingMode) {
   try {
     console.log("Current drawing mode: " + drawingMode);
-  } catch(exp) {
-    
-  }
+  } catch (exp) {}
 };

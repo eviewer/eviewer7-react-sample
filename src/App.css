@@ -43,10 +43,12 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
+
 .webviewer {
   height: 100vh;
 }
@@ -62,6 +64,7 @@
   margin-left: 36%;
   /* margin-top: 1rem; */
 }
+
 .pageRange {
   margin-left: 84px;
   margin-top: -2rem;
@@ -108,12 +111,12 @@
 .div-captionlabel {
   width: 100%;
   display: flex;
-  justify-content: space-between; 
+  justify-content: space-between;
   font-size: inherit;
   color: white;
 }
 
-.caption-bg-info{
+.caption-bg-info {
   background-color: #397ed9 !important;
 }
 

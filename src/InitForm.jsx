@@ -15,7 +15,9 @@ class InitForm extends Component {
       isRightClickContextMenuChecked: true,
       isDocumentumConnectorChecked: false,
       isEnableSHortcutKeysWithoutClick: true,
+      isRegisterCallbackFunctions: true,
       userName: "demo user",
+      password: "",
       contentSecurity: "",
       licenseKey: "PROVIDED BY MST",
       viewerServerURL: "",
@@ -31,9 +33,11 @@ class InitForm extends Component {
         overrideEnableHyperLink={this.state.operationPerformUsingRegExField}
         useDocumentumConnector= {this.state.isDocumentumConnectorChecked}
         userName={this.state.userName}
+        password={this.state.password}
         viewerServerURL={this.state.viewerServerURL}
         contentSecurity={this.state.contentSecurity}
         enableShortcutWithoutClick = {this.state.isEnableSHortcutKeysWithoutClick}
+        registerCallbackFunctions = {this.state.isRegisterCallbackFunctions}
       />
     );
   };
@@ -47,6 +51,12 @@ class InitForm extends Component {
       userName: event.target.value,
     });
   };
+
+  handleInputPassword = (event) => {
+    this.setState({
+      password: event.target.value,
+    });
+  };  
 
   handleContentSecurity = (event) => {
     this.setState({
@@ -79,7 +89,12 @@ class InitForm extends Component {
         !this.state.isEnableSHortcutKeysWithoutClick
     });
   };
-
+  toggleRegisterCallbackFunctions = () => {
+    this.setState({
+      isRegisterCallbackFunctions:
+        !this.state.isRegisterCallbackFunctions
+    });
+  }
   toggleOverrideThumbIndicatorOverride = () => {
     this.setState({
       isThumbnailIndicatorChecked: !this.state.isThumbnailIndicatorChecked,
@@ -136,6 +151,18 @@ class InitForm extends Component {
             placeholder="User Name"
           />
         </div>
+        {this.state.isDocumentumConnectorChecked && (
+          <div>
+            <input
+              type="password"
+              className="form-control form-control-sm"
+              name="Password"
+              value={this.state.password}
+              onChange={this.handleInputPassword}
+              placeholder="Password"
+            />
+          </div>
+        )}       
         <div>
           <input
             type="text"
@@ -196,6 +223,16 @@ class InitForm extends Component {
             Enable Shortcut keys over Viewer
           </label>
         </div> 
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              defaultChecked={this.state.isRegisterCallbackFunctions}
+              onChange={this.toggleRegisterCallbackFunctions}
+            />
+            Register Callback functions
+          </label>
+        </div>
         <div>
           <button className="btn btn-primary" onClick={this.handleSubmit}>
             Load Viewer
