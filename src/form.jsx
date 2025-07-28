@@ -87,6 +87,7 @@ class Form extends Component {
       saveMultipartPayLoadType: false,
       savingEndpointRejectValue: false,
       fitStyle: "default",
+      isRibbonHidden: false,
       appearanceList: [
         "BASE64 IMAGE GOES HERE",
       ],
@@ -181,7 +182,7 @@ class Form extends Component {
         reject(false);
       }
     });
-  }
+  };
 
   tabMenuCloseAllDoc = () => {
     return new Promise((resolve, reject) => {
@@ -197,6 +198,54 @@ class Form extends Component {
         reject(false);
       }
     });
+  };
+
+  isRibbonHiddenFromPref() {
+    let allTabsHidden = true;
+    for (let toolbar of this.state.defaultPrefJSON.ribbonToolbar) {
+      if (!allTabsHidden) {
+        break;
+      }
+      // let toolbar = this.userPreference.ribbonToolbar[toolbarKey]; // Get the actual object
+      switch (toolbar.name) {
+        case "View":
+          if (toolbar.isViewTabVisible) {
+            allTabsHidden = false;
+          }
+          break;
+        case "Insert":
+          if (toolbar.isInsertTabVisible) {
+            allTabsHidden = false;
+          }
+        case "Annotate":
+          if (toolbar.isAnnotationTabVisible) {
+            allTabsHidden = false;
+          }
+        case "Redact":
+        case "Annotate":
+          if (toolbar.isRedactTabVisible) {
+            allTabsHidden = false;
+          }
+        case "Signature":
+          if (toolbar.isSignatureTabVisible) {
+            allTabsHidden = false;
+          }
+        case "Speech":
+          if (toolbar.isSpeechTabVisible) {
+            allTabsHidden = false;
+          }
+        case "Compare":
+          if (toolbar.isCompareTabVisible) {
+            allTabsHidden = false;
+          }
+        case "Medify":
+          if (toolbar.isMedifyTabVisible) {
+            allTabsHidden = false;
+          }
+          break;
+      }
+    }
+    return allTabsHidden;
   }
 
   setViewerOptions = () => {
@@ -208,6 +257,10 @@ class Form extends Component {
 
     if (this.state.userPrefEndPoint != null) {
       this.state.defaultPrefJSON = this.state.userPrefEndPoint;
+    }
+
+    if (this.state.defaultPrefJSON != null) {
+      this.state.isRibbonHidden = this.isRibbonHiddenFromPref();
     }
 
     let viewerPrefSrvc = eViewerObj.getViewerPreferenceService();
@@ -278,7 +331,7 @@ class Form extends Component {
       savePayloadType = "multipart/form-data";
     }
     let options = {
-      type: "GET",
+      type: "POST",
       headers: {
         Authorization: "Bearer " + this.state.token,
         Accept: "application/octet-stream.",
@@ -290,7 +343,7 @@ class Form extends Component {
     sigSrvc.setAvailableAppearances(this.state.appearanceList);
     sigSrvc.setAvailableCertificates(this.state.savedCertificates);
 
-    // this.eViewerObj.setTabMenuHandler(this.state.setTabMenuHandler);
+    this.eViewerObj.setTabMenuHandler(this.state.setTabMenuHandler);
 
     if (this.state.savingEndpointRejectValue === true) {
       this.eViewerObj.setDocumentEndPointOptions(
@@ -306,7 +359,6 @@ class Form extends Component {
         options,
         this.state.viewerServerURL,
         this.state.savingEndpoint,
-        // null, // set as null for Deloitte FL
         this.state.ocrEndpoint,
         this.state.hideToolBar
       );
@@ -457,27 +509,35 @@ class Form extends Component {
                 </div>
               }
               {
-                <div className="form-group" style={{ display: "flex" }}>
+                <div
+                  className="form-group"
+                  style={{ display: "flex", alignItems: "center" }}
+                >
                   <input
                     type="checkbox"
                     className="form-control form-control-sm"
                     name="savePayloadType"
                     onChange={this.handleSavePayloadType}
+                    style={{ height: "30px", width: "30px" }}
                   />
-                  <div style={{ color: "#3f2626" }}>
+                  <div style={{ color: "#3f2626", marginLeft: "5%" }}>
                     &nbsp;SavePayloadType - multipart/form-data
                   </div>
                 </div>
               }
               {
-                <div className="form-group" style={{ display: "flex" }}>
+                <div
+                  className="form-group"
+                  style={{ display: "flex", alignItems: "center" }}
+                >
                   <input
                     type="checkbox"
                     className="form-control form-control-sm"
                     name="saveEndpointReject"
                     onChange={this.handlesaveEndpointReject}
+                    style={{ height: "30px", width: "30px" }}
                   />
-                  <div style={{ color: "#3f2626" }}>
+                  <div style={{ color: "#3f2626", marginLeft: "5%" }}>
                     {" "}
                     &nbsp;saveDocumentEndpointReject
                   </div>
@@ -509,6 +569,8 @@ class Form extends Component {
             documentumConnector={this.props.useDocumentumConnector}
             enableShortcutWithoutClick={this.props.enableShortcutWithoutClick}
             registerCallbackFunctions={this.props.registerCallbackFunctions}
+            isHideRibbonToolBar={this.props.isHideRibbonToolBar}
+            isRibbonHidden={this.state.isRibbonHidden}
           />
         </div>
       </>

@@ -210,6 +210,12 @@ window._docRedact = function (docID) {
   console.log("_docRedact: " + docID);
 };
 
+window._dragDrop = function (obj) {
+  try {
+    console.log(obj.action);
+    console.log(obj.docId);
+  } catch (exp) {}
+};
 window._drawingModeChange = function (drawingMode) {
   try {
     console.log("Current drawing mode: " + drawingMode);

@@ -38,6 +38,7 @@ class InitForm extends Component {
         contentSecurity={this.state.contentSecurity}
         enableShortcutWithoutClick = {this.state.isEnableSHortcutKeysWithoutClick}
         registerCallbackFunctions = {this.state.isRegisterCallbackFunctions}
+        isHideRibbonToolBar = {this.state.isHideRibbonToolBar}
       />
     );
   };
@@ -100,6 +101,13 @@ class InitForm extends Component {
       isThumbnailIndicatorChecked: !this.state.isThumbnailIndicatorChecked,
     });
   };
+
+    toggleHideRibbonToolBar = () =>{
+    this.setState({
+      isHideRibbonToolBar:
+      !this.state.isHideRibbonToolBar
+    })
+  }
 
   toggleDocumentumConnector = () => {
     this.setState({
@@ -231,6 +239,16 @@ class InitForm extends Component {
               onChange={this.toggleRegisterCallbackFunctions}
             />
             Register Callback functions
+          </label>
+        </div>
+         <div>
+          <label>
+            <input
+              type="checkbox"
+              defaultChecked={this.state.isHideRibbonToolBar}
+              onChange={this.toggleHideRibbonToolBar}
+            />
+            Hide Ribbon ToolBar
           </label>
         </div>
         <div>

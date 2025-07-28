@@ -8,6 +8,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.docUrlArray = [];
+    this.clientDocIdArray = [];
     this.annUrlArray = [];
     this.docIndex = 0;
     this.licenseKey = this.props.licenseKey;
@@ -198,6 +199,11 @@ class App extends Component {
         if(this.props.enableShortcutWithoutClick) {
           this.eViewerObj.enableShortcutWithoutClick();
         }
+      })
+      .then(() => {
+        if (this.props.isHideRibbonToolBar) {
+          this.eViewerObj.enableHideRibbonToolBar();
+        }
       });
     await import("@mstechusa/eviewer7/styles.css");
     await import("@mstechusa/eviewer7/scripts");
@@ -366,6 +372,10 @@ class App extends Component {
       console.log("redactUpdated: docID " + docId);
     });
 
+    this.callBackAPIService.setDragCallback((event) => {
+      console.log("page dragged and " + event.action + " in " + event.docId);
+    });
+
     this.callBackAPIService.setTabSwitchCallback(
       (outFocusViewerDocID, inFocusViewerDocID) => {
         console.log({
@@ -406,7 +416,7 @@ class App extends Component {
     console.log(loggableArray);
   }
 
-  submitUploadDetail = (event) => {
+  uploadDocument() {
     if (this.eViewerObj === null) {
       this.eViewerObj = new eViewerApp(this.props.userName);
     }
@@ -418,19 +428,21 @@ class App extends Component {
     } else {
       this.annUrlArray = this.state.annURLs.split(";");
 
-      if (
-        this.annUrlArray[this.docIndex] !== undefined &&
-        this.annUrlArray[this.docIndex] !== null
-      ) {
-        annUrl = this.annUrlArray[this.docIndex];
-      } else {
-        annUrl = null;
-      }
+      // if (
+      //   this.annUrlArray[this.docIndex] !== undefined &&
+      //   this.annUrlArray[this.docIndex] !== null
+      // ) {
+      //   annUrl = this.annUrlArray[this.docIndex];
+      // } else {
+      //   annUrl = null;
+      // }
     }
     let documentSrvc = this.eViewerObj.getDocumentService();
 
     // let clientDocID = "client_" + uuid();
     this.docUrlArray = this.state.docURLs.split(";");
+
+    this.clientDocIdArray = this.state.clientDocId.split(";");
     this.docIndex = 0;
     // documentSrvc.closeAllDocuments();
     let readOnly = this.state.readOnly === "true" ? true : false;
@@ -461,106 +473,119 @@ class App extends Component {
       }
     };
 
-    if(this.state.isThumbIconCallbackNull) {
+    if (this.state.isThumbIconCallbackNull) {
       thumbnailCallbackImpl = null;
     }
 
-    if (this.props.overrideThumbIndicator) {
-      documentSrvc
-        .loadDocumentWithOptions(
-          this.docUrlArray[this.docIndex],
-          annUrl,
-          this.state.clientDocId,
-          //optional parameter
-          {
-            isEditMode: true,
-            repoType: "filesystem",
-            password: "",
-            landingPage: this.state.landingPgNo,
-            pageFilters: this.getPageVisibility(),
-            groupName: this.state.groupName,
-            readOnly: readOnly,
-            tabStyle: {
-              // backgroundColor: "rgb(247, 247, 247)",
-              // color: "black",
-              // fontWeight: "",
-              // fontStyle: "",
-              fileName: "some-document-description-OUTFOCUS",
-              // icon: "",
-            },
-            focusTabStyle: {
-              // backgroundColor: "rgb(57, 139, 247)",
-              // color: "white",
-              // fontWeight: "",
-              // fontStyle: "",
-              fileName: "some-document-description-INFOCUS",
-              // icon: "",
-            },
-            thumbnailIconCallback: thumbnailCallbackImpl,
-            captionUrls: this.state.captionURLs,
-          }
-        )
-        .then((response) => {
-          console.log(response);
-          this.setState({ defaultDisabled: false });
-          this.setState({ docURLs: "" });
-          this.setState({ landingPgNo: 1 });
-          this.setState({ groupName: "" });
-        });
-    } else {
-      documentSrvc
-        .loadDocumentWithOptions(
-          this.docUrlArray[this.docIndex],
-          annUrl,
-          this.state.clientDocId,
-          //optional parameter
-          {
-            isEditMode: true,
-            repoType: "filesystem",
-            password: "",
-            landingPage: this.state.landingPgNo,
-            pageFilters: this.getPageVisibility(),
-            groupName: this.state.groupName,
-            readOnly: readOnly,
-            tabStyle: {
-              //   backgroundColor: "white",
-              //   color: "black",
-              //   fontWeight: "900",
-              //   fontStyle: "italic",
-              fileName: "some-document-description-OUTFOCUS",
-              //   icon: "",
-            },
-            focusTabStyle: {
-              //   backgroundColor: "red",
-              //   color: "white",
-              //   fontWeight: "900",
-              //   fontStyle: "underline",
-              fileName: "some-document-description-INFOCUS",
-              //   icon: "",
-            },
+    let docCount = this.docUrlArray.length;
 
-            captionUrls: this.state.captionURLs,
-          }
-        )
-        .then((response) => {
-          console.log(response);
-          this.setState({ defaultDisabled: false });
-          this.setState({ docURLs: "" });
-          this.setState({ annURLs: "" });
-          this.setState({ landingPgNo: 1 });
-          this.setState({ groupName: "" });
-        });
+    for (let i = 0; i < docCount; i++) {
+      let annUrl = "";
+      if (this.annUrlArray[i]) {
+        annUrl = this.annUrlArray[i];
+      }
+
+      if (this.props.overrideThumbIndicator) {
+        documentSrvc
+          .loadDocumentWithOptions(
+            this.docUrlArray[i],
+            annUrl,
+            this.clientDocIdArray[i] ?? "",
+            //optional parameter
+            {
+              isEditMode: true,
+              repoType: "filesystem",
+              password: "",
+              landingPage: this.state.landingPgNo,
+              pageFilters: this.getPageVisibility(),
+              groupName: this.state.groupName,
+              readOnly: readOnly,
+              tabStyle: {
+                // backgroundColor: "rgb(247, 247, 247)",
+                // color: "black",
+                // fontWeight: "",
+                // fontStyle: "",
+                fileName: "some-document-description-OUTFOCUS",
+                // icon: "",
+              },
+              focusTabStyle: {
+                // backgroundColor: "rgb(57, 139, 247)",
+                // color: "white",
+                // fontWeight: "",
+                // fontStyle: "",
+                fileName: "some-document-description-INFOCUS",
+                // icon: "",
+              },
+              thumbnailIconCallback: thumbnailCallbackImpl,
+              captionUrls: this.state.captionURLs,
+            }
+          )
+          .then((response) => {
+            console.log(response);
+            this.setState({ defaultDisabled: false });
+            this.setState({ docURLs: "" });
+            this.setState({ landingPgNo: 1 });
+            this.setState({ groupName: "" });
+          });
+      } else {
+        documentSrvc
+          .loadDocumentWithOptions(
+            this.docUrlArray[i],
+            annUrl,
+            this.state.clientDocId,
+            //optional parameter
+            {
+              isEditMode: true,
+              repoType: "filesystem",
+              password: "",
+              landingPage: this.state.landingPgNo,
+              pageFilters: this.getPageVisibility(),
+              groupName: this.state.groupName,
+              readOnly: readOnly,
+              tabStyle: {
+                // backgroundColor: "rgb(247, 247, 247)",
+                // color: "black",
+                // fontWeight: "",
+                // fontStyle: "",
+                fileName: "some-document-description-OUTFOCUS",
+                // icon: "",
+              },
+              focusTabStyle: {
+                // backgroundColor: "rgb(57, 139, 247)",
+                // color: "white",
+                // fontWeight: "",
+                // fontStyle: "",
+                fileName: "some-document-description-INFOCUS",
+                // icon: "",
+              },
+
+              captionUrls: this.state.captionURLs,
+            }
+          )
+          .then((response) => {
+            console.log(response);
+            this.setState({ defaultDisabled: false });
+            this.setState({ docURLs: "" });
+            this.setState({ landingPgNo: 1 });
+            this.setState({ groupName: "" });
+          });
+      }
     }
 
     if (this.selectedAnnotation.stampDetailsArray.length === 0) {
       this.getStamps(false);
     }
+
     this.disableAllDiv();
     this.setState({
       isShowDocNavigators: true,
     });
     this.setState({ docURLs: "" });
     this.setState({ captionURLs: null });
+  }
+
+  submitUploadDetail = (event) => {
+    this.uploadDocument();
   };
 
   getPageVisibility = () => {
@@ -1070,16 +1095,16 @@ class App extends Component {
     }
     const pageNo = Number(event.target[0].value);
     const startX = Number(event.target[1].value);
-    const endX = Number(event.target[2].value);
-    const startY = Number(event.target[3].value);
+    const startY = Number(event.target[2].value);
+    const endX = Number(event.target[3].value);
     const endY = Number(event.target[4].value);
 
     let inputData = {
       pageNo: pageNo,
       startX: startX,
-      endX: endX,
+      endX: startX,
       startY: startY,
-      endY: endY,
+      endY: startY,
     };
 
     this.eViewerObj.editingService.snipArea(inputData);
@@ -1219,7 +1244,7 @@ class App extends Component {
       showUnGroupForm: false,
       showSetGroupsInfoForm: false,
       showDocumentInfoByGroupForm: false,
-		isGetXFDFannData: false,
+      isGetXFDFannData: false,
       xfdfAnnData: null,
       showSetDrawingMode: false,
       showUndoForm: false,
@@ -2343,8 +2368,8 @@ class App extends Component {
     const pageRange = this.convertPageRangeToPageArray();
     const position = {
       X: +Number(event.target[1].value),
-      width: +Number(event.target[2].value),
-      Y: +Number(event.target[3].value),
+      width: +Number(event.target[3].value),
+      Y: +Number(event.target[2].value),
       height: +Number(event.target[4].value),
     };
     this.eViewerObj.redactionService.drawRedaction(
@@ -3533,7 +3558,10 @@ class App extends Component {
                             checked={this.state.isThumbIconCallbackNull}
                             onChange={this.thumbIconValueNull}
                           />
-                          <label htmlFor="thumbIconCallbackNull"> Set ThumbnailIconCallback null</label>
+                          <label htmlFor="thumbIconCallbackNull">
+                            {" "}
+                            Set ThumbnailIconCallback null
+                          </label>
                         </div>
                       </div>
                       <button
@@ -4228,7 +4256,7 @@ class App extends Component {
                           type="text"
                           className="form-control form-control-sm"
                           name="pageNo"
-                          placeholder="e.g. '1'"
+                          placeholder="Page Range..."
                           required
                         />
                       </div>
@@ -4237,16 +4265,7 @@ class App extends Component {
                           type="text"
                           class="form-control form-control-sm"
                           name="startX"
-                          placeholder="startX: Position on page in pixels."
-                          required
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          class="form-control form-control-sm"
-                          name="endX"
-                          placeholder="endX: Position on page in pixels."
+                          placeholder="X"
                           required
                         />
                       </div>
@@ -4255,7 +4274,7 @@ class App extends Component {
                           type="text"
                           class="form-control form-control-sm"
                           name="startY"
-                          placeholder="startY: Position on page in pixels."
+                          placeholder="Y"
                           required
                         />
                       </div>
@@ -4263,8 +4282,18 @@ class App extends Component {
                         <input
                           type="text"
                           class="form-control form-control-sm"
+                          name="endX"
+                          placeholder="Width"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
                           name="endY"
-                          placeholder="endY: Position on page in pixels."
+                          placeholder="Height"
                           required
                         />
                       </div>
@@ -6252,16 +6281,7 @@ class App extends Component {
                           type="text"
                           class="form-control form-control-sm"
                           name="startX"
-                          placeholder="startX: Position on page in pixels."
-                          required
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          class="form-control form-control-sm"
-                          name="endX"
-                          placeholder="endX: Position on page in pixels."
+                          placeholder="X"
                           required
                         />
                       </div>
@@ -6270,7 +6290,16 @@ class App extends Component {
                           type="text"
                           class="form-control form-control-sm"
                           name="startY"
-                          placeholder="startY: Position on page in pixels."
+                          placeholder="Y"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          name="endX"
+                          placeholder="Width"
                           required
                         />
                       </div>
@@ -6279,7 +6308,7 @@ class App extends Component {
                           type="text"
                           class="form-control form-control-sm"
                           name="endY"
-                          placeholder="endY: Position on page in pixels."
+                          placeholder="Height"
                           required
                         />
                       </div>
