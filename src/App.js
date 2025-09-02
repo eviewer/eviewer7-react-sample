@@ -2583,6 +2583,15 @@ class App extends Component {
       options.fontFace = event.target[9].value;
       options.fontSize = +event.target[10].value;
       options.FontColor = event.target[11].value;
+    } else if(this.selectedAnnotation.name === "predefinedText") {
+      options.enterText = event.target[1].value;
+      options.rotateWithPage = event.target[2].value;
+      options.borderWidth = event.target[3].value;
+      options.borderColor = event.target[4].value;
+      options.fillColor = event.target[5].value;
+      options.opacity = +event.target[6].value;
+      options.fontFace = event.target[7].value;
+      options.FontColor = event.target[8].value;
     } else if (this.selectedAnnotation.name === "checkpoint") {
       options.fillColor = event.target[5].value;
     } else if (this.selectedAnnotation.name === "stamp") {
@@ -2611,6 +2620,14 @@ class App extends Component {
     ) {
       options.opacity = undefined;
     }
+
+    if(
+      this.selectedAnnotation.name === "predefinedText" &&
+      event.target[6].value === ""
+    ) {
+      options.opacity = undefined;
+    }
+
     if (
       this.selectedAnnotation.name === "text" &&
       event.target[8].value === ""
@@ -2621,7 +2638,7 @@ class App extends Component {
       options.opacity = undefined;
     }
     if (
-      (options.borderWidth === 0 || options.borderWidth === undefined) &&
+      (options.borderWidth === undefined) &&
       (options.borderOpacity === 0 || options.borderOpacity === undefined) &&
       (options.borderColor === "" || options.borderColor === undefined) &&
       (options.fillColor === "" || options.fillColor === undefined) &&
@@ -2669,17 +2686,24 @@ class App extends Component {
         pageRange.push(+this.state.pageNO);
       }
     }
-    this.selectedAnnotation.startX = Number(event.target[1].value);    
-    this.selectedAnnotation.startY = Number(event.target[2].value);
-    this.selectedAnnotation.endX = Number(event.target[3].value);
-    this.selectedAnnotation.endY = Number(event.target[4].value);
 
-    let annotationData = {
-      X: this.selectedAnnotation.startX, //434, //inputData.annCanvasStartX
-      Width: this.selectedAnnotation.endX, // 607, //inputData.annCanvasEndX
-      Y: this.selectedAnnotation.startY, //299, //inputData.annCanvasStartY
-      Height: this.selectedAnnotation.endY, // 446, //inputData.annCanvasEndY
-    };
+    let annotationData = null;
+
+    if(this.selectedAnnotation.name != "predefinedText") {
+      this.selectedAnnotation.startX = Number(event.target[1].value);
+      this.selectedAnnotation.startY = Number(event.target[2].value);
+      this.selectedAnnotation.endX = Number(event.target[3].value);
+      this.selectedAnnotation.endY = Number(event.target[4].value);
+
+      annotationData = {
+        X: this.selectedAnnotation.startX, //434, //inputData.annCanvasStartX
+        Width: this.selectedAnnotation.endX, // 607, //inputData.annCanvasEndX
+        Y: this.selectedAnnotation.startY, //299, //inputData.annCanvasStartY
+        Height: this.selectedAnnotation.endY, // 446, //inputData.annCanvasEndY
+      };
+    } else {
+      annotationData = "center";
+    }
 
     this.eViewerObj.annotationService.drawShapes(
       pageRange,
@@ -3095,9 +3119,11 @@ class App extends Component {
     }
 
     const modeName = event.target[0].value;
-    this.eViewerObj.annotationService.setDrawingMode(modeName).then((response) => {
-      console.log(response);
-    });
+    this.eViewerObj.annotationService
+      .setDrawingMode(modeName)
+      .then((response) => {
+        console.log(response);
+      });
     this.disableAllDiv();
     this.setState({ showSetDrawingMode: false });
   };
@@ -4620,6 +4646,9 @@ class App extends Component {
                     <option className="text-dark" value="text">
                       TEXT
                     </option>
+                    <option className="text-dark" value="predefinedText">
+                      PREDEFINED TEXT
+                    </option>
                     <option className="text-dark" value="stickynote">
                       STICKYNOTE
                     </option>
@@ -4795,42 +4824,62 @@ class App extends Component {
                           required
                         />
                       </div>
-                      <div>
+                      {this.selectedAnnotation.name === "predefinedText" && (
+                        <>
                         <input
                           type="text"
-                          className="form-control form-control-sm"
-                          name="X"
-                          placeholder="X"
-                          required
+                          className="form-control form-control-sm col-sm-3"
+                          name="enterText"
+                          placeholder="Enter Text"
                         />
-                      </div>
-                      <div>
                         <input
                           type="text"
-                          className="form-control form-control-sm"
-                          name="Y"
-                          placeholder="Y"
-                          required
+                          className="form-control form-control-sm col-sm-3"
+                          name="rotateWithPage"
+                          placeholder="rotateWithPage: true or false"
                         />
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          className="form-control form-control-sm"
-                          name="Width"
-                          placeholder="Width"
-                          required
-                        />
-                      </div>                      
-                      <div>
-                        <input
-                          type="text"
-                          className="form-control form-control-sm"
-                          name="Height"
-                          placeholder="Height"
-                          required
-                        />
-                      </div>
+                        </>
+                      )}
+                      {this.selectedAnnotation.name !== "predefinedText" && (
+                        <>
+                          <div>
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              name="X"
+                              placeholder="X"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              name="Y"
+                              placeholder="Y"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              name="Width"
+                              placeholder="Width"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              name="Height"
+                              placeholder="Height"
+                              required
+                            />
+                          </div>
+                        </>
+                      )}
                       {(this.selectedAnnotation.name === "line" ||
                         this.selectedAnnotation.name === "arrow") && (
                         <>
@@ -4906,7 +4955,8 @@ class App extends Component {
                           />
                         </>
                       )}
-                      {this.selectedAnnotation.name === "text" && (
+                      {(this.selectedAnnotation.name === "text" || 
+                      this.selectedAnnotation.name === "predefinedText") && (
                         <>
                           <input
                             type="text"
@@ -4938,12 +4988,16 @@ class App extends Component {
                             name="fontFace"
                             placeholder="FontFace"
                           />
-                          <input
-                            type="text"
-                            className="form-control form-control-sm col-sm-3"
-                            name="fontSize"
-                            placeholder="fontSize"
-                          />
+                          {this.selectedAnnotation.name === "text" && (
+                            <>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm col-sm-3"
+                                name="fontSize"
+                                placeholder="fontSize"
+                              />
+                            </>
+                          )}
                           <input
                             type="text"
                             className="form-control form-control-sm col-sm-3"

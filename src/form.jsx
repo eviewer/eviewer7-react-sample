@@ -259,7 +259,10 @@ class Form extends Component {
       this.state.defaultPrefJSON = this.state.userPrefEndPoint;
     }
 
-    if (this.state.defaultPrefJSON != null) {
+    if (
+      this.state.defaultPrefJSON != null &&
+      this.state.defaultPrefJSON.ribbonToolbar != null
+    ) {
       this.state.isRibbonHidden = this.isRibbonHiddenFromPref();
     }
 
