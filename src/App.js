@@ -34,10 +34,12 @@ class App extends Component {
       isHideOnlyPagesShow: false,
       isUpdateButtonShow: false,
       isgotoPageDivShow: false,
+      iscustomZoomDivShow: false,
       isinsertDivShow: false,
       isappendDivShow: false,
       issearchTextDivShow: false,
       isExportDivShow: false,
+      isExportToPasswordProtectedDivShow: false,
       isInvertPageDivShow: false,
       isCopyToClipboardDivShow: false,
       isSetCustomStampsShow: false,
@@ -65,6 +67,13 @@ class App extends Component {
       xfdfAnnData: null,
       showUndoForm: false,
       showRedoForm: false,
+      editMode: 1,
+      showOpenTextSearchForm: false,
+      showReadOnlyForm: false,
+      showEditModeForm: false,
+      scrollToTop: false,
+      showDragAnddropForm: false,
+      showSetActiveTabForm: false,
     };
 
     this.captionMap = new Map();
@@ -107,6 +116,7 @@ class App extends Component {
       doctype: "",
       pageOption: "",
       DocName: "",
+      password: "",
       DocMetaDataJson: "",
     };
     this.state = {
@@ -126,12 +136,17 @@ class App extends Component {
       fileNameValue: "",
     };
 
+    this.state = {
+      scrollToTop: false,
+    };
+
     this.state = { landingPgNo: 1 };
     this.state = {
       hidePages: "",
       clientDocId: "",
       groupName: "",
       readOnly: false,
+      editMode: 1,
     };
 
     this.selectedAnnotation = {
@@ -191,12 +206,12 @@ class App extends Component {
         this.eViewerObj.addContentSecurityPolicy(this.props.contentSecurity)
       )
       .then(() => {
-        if(this.props.registerCallbackFunctions) {
+        if (this.props.registerCallbackFunctions) {
           this.registerCallBackFunctions();
         }
       })
       .then(() => {
-        if(this.props.enableShortcutWithoutClick) {
+        if (this.props.enableShortcutWithoutClick) {
           this.eViewerObj.enableShortcutWithoutClick();
         }
       })
@@ -334,9 +349,22 @@ class App extends Component {
       console.log("pageCopied: " + docID + " current pageNo: " + pageNo);
     });
 
-    this.callBackAPIService.setPagePastedCallback((docID, pageNo) => {
-      console.log("pagePasted: " + docID + " current pageNo: " + pageNo);
-    });
+    this.callBackAPIService.setPagePastedCallback(
+      (sourceDocID, sourcePageNos, targetDocID, targetPageNo) => {
+        console.log(
+          "pagePasted details: " +
+            " sourceDocID: " +
+            sourceDocID +
+            ",	sourcePageNos: [" +
+            sourcePageNos +
+            "], targetDocID: " +
+            targetDocID +
+            ", targetPageNo: " +
+            targetPageNo +
+            ""
+        );
+      }
+    );
 
     this.callBackAPIService.setTextSelectedCallback((response) => {
       console.log(response);
@@ -400,9 +428,9 @@ class App extends Component {
     });
 
     this.callBackAPIService.setDocRedactCallback((docId) => {
-        try {
-          console.log("redactUpdated: docID " + docId);
-        } catch (exp) {}
+      try {
+        console.log("redactUpdated: docID " + docId);
+      } catch (exp) {}
     });
   };
 
@@ -493,7 +521,7 @@ class App extends Component {
             this.clientDocIdArray[i] ?? "",
             //optional parameter
             {
-              isEditMode: true,
+              isEditMode: Number(this.state.editMode),
               repoType: "filesystem",
               password: "",
               landingPage: this.state.landingPgNo,
@@ -535,7 +563,7 @@ class App extends Component {
             this.state.clientDocId,
             //optional parameter
             {
-              isEditMode: true,
+              isEditMode: Number(this.state.editMode),
               repoType: "filesystem",
               password: "",
               landingPage: this.state.landingPgNo,
@@ -618,6 +646,46 @@ class App extends Component {
         console.log("DocumentId " + response);
       });
   };
+
+  submitOpenTextSearch = (event) => {
+    event.preventDefault();
+    this.eViewerObj.documentService.openTextSearch(event.target[0].value);
+  };
+
+  submitReadOnly = (event) => {
+    event.preventDefault();
+    this.eViewerObj.docPreferenceService.setReadOnly(
+      event.target[0].value,
+      event.target[1].value
+    );
+    this.disableAllDiv();
+  };
+
+  submitEnableDragDrop = (event) => {
+    event.preventDefault();
+    this.eViewerObj.documentService.enableDragAndDrop(
+      event.target[0].value,
+      event.target[1].value
+    );
+    this.disableAllDiv();
+  };
+
+  submitSetActiveTab = (event) => {
+    event.preventDefault();
+    const activeTabName = event.target[0].value.toLowerCase();
+    this.eViewerObj.documentService.setActiveTab(activeTabName);
+    this.disableAllDiv();
+  };
+
+  submitSetEditMode = (event) => {
+    event.preventDefault();
+    this.eViewerObj.docPreferenceService.setEditMode(
+      event.target[0].value,
+      event.target[1].value
+    );
+    this.disableAllDiv();
+  };
+
   submitUndo = (event) => {
     this.eViewerObj.documentService.undo(this.state.docId).then((response) => {
       console.log("DocumentId " + response);
@@ -830,7 +898,7 @@ class App extends Component {
           clientDocID,
           "some-document-description",
           {
-            isEditMode: true,
+            isEditMode: Number(this.state.editMode),
             repoType: "filesystem",
             password: "",
             landingPage: this.state.landingPgNo,
@@ -847,15 +915,19 @@ class App extends Component {
     });
   };
 
+  submitCustomZoom = () => {
+    this.eViewerObj.documentService.zoomTo(this.state.customZoom);
+    this.disableAllDiv();
+  };
+
   submitGotoPageDetail = () => {
     this.eViewerObj.documentService
-      .gotoPage(this.state.pageNO)
+      .gotoPage(this.state.pageNO, this.state.scrollToTop)
       .then((response) => {
         console.log("gotoPage: " + response);
       });
     this.disableAllDiv();
   };
-
   convertPageRangeToPageArray() {
     let pageArray;
     let pageRange = [];
@@ -1150,6 +1222,42 @@ class App extends Component {
       });
     this.disableAllDiv();
   };
+  submitPasswordExportDetail = (e) => {
+    e.preventDefault();
+
+    if (this.eViewerObj === null) {
+      this.eViewerObj = new eViewerApp(this.props.userName);
+    }
+
+    this.eViewerObj.setUserName(this.props.userName);
+
+    const exportData = {
+      exportType: "EXPORT",
+      downloadDocName: this.state.DocName,
+      pageFilters: "currentDocument",
+      exportAs: "pdf",
+      includeAnnotations: true,
+      includeWatermark: true,
+      includeComments: true,
+      userPassword: this.state.password,
+    };
+
+    const fileType = "pdf";
+
+    this.eViewerObj.editingService
+      .docExportWithOptions(exportData)
+      .then((fileData) => {
+        if (fileData) {
+          this.exportFileData(fileType, fileData, this.state.DocName);
+        }
+      });
+
+    // Reset
+    this.setState({
+      password: "",
+      isExportToPasswordProtectedDivShow: false,
+    });
+  };
 
   exportFileData = (mimeType, view, docName) => {
     let file = null;
@@ -1207,10 +1315,12 @@ class App extends Component {
       isInvertPageDivShow: false,
       isCopyToClipboardDivShow: false,
       isSetCustomStampsShow: false,
+      iscustomZoomDivShow: false,
       isinsertDivShow: false,
       isappendDivShow: false,
       issearchTextDivShow: false,
       isExportDivShow: false,
+      isExportToPasswordProtectedDivShow: false,
       isShowDocNavigators: false,
       isAddButtonShow: false,
       isRemoveButtonShow: false,
@@ -1249,6 +1359,11 @@ class App extends Component {
       showSetDrawingMode: false,
       showUndoForm: false,
       showRedoForm: false,
+      showOpenTextSearchForm: false,
+      showReadOnlyForm: false,
+      showEditModeForm: false,
+      showEnableDragDropForm: false,
+      showSetActiveTabForm: false,
     });
   };
 
@@ -1346,13 +1461,23 @@ class App extends Component {
   clientDocIdValue = (events) => {
     this.setState({ clientDocId: events.target.value });
   };
-
+  customZoomValue = (events) => {
+    this.setState({ customZoom: events.target.value });
+  };
   groupNameValue = (events) => {
     this.setState({ groupName: events.target.value });
   };
 
   readOnlyValue = (events) => {
     this.setState({ readOnly: events.target.value });
+  };
+
+  editModeType = (events) => {
+    this.setState({ editMode: events.target.value });
+  };
+
+  scrollToTopType = (events) => {
+    this.setState({ scrollToTop: events.target.value });
   };
 
   annURLsValue = (events) => {
@@ -1418,6 +1543,9 @@ class App extends Component {
   DocNameValue = (events) => {
     this.setState({ DocName: events.target.value });
   };
+  passwordValue = (e) => {
+    this.setState({ password: e.target.value });
+  };
 
   IncludeCommentsValue = (events) => {
     this.setState({ includeComments: events.target.value });
@@ -1473,6 +1601,10 @@ class App extends Component {
         break;
       case "export":
         this.setState({ isExportDivShow: true });
+
+        break;
+      case "exportToPasswordProtected":
+        this.setState({ isExportToPasswordProtectedDivShow: true });
 
         break;
       case "printDocument":
@@ -2025,7 +2157,87 @@ class App extends Component {
         // this.setState({ showRedoForm: true });
         this.submitRedo();
         break;
-
+      case "openTextSearch":
+        this.setState({ showOpenTextSearchForm: true });
+        break;
+      case "closeTextSearch":
+        this.eViewerObj.documentService.closeTextSearch();
+        break;
+      case "openAnnPropPanel":
+        this.eViewerObj.documentService
+          .openAnnotationPropertyPanel()
+          .then((value) => {
+            console.log("annotation property panel open : " + value);
+          });
+        break;
+      case "closeAnnPropPanel":
+        this.eViewerObj.documentService
+          .closeAnnotationPropertyPanel()
+          .then((value) => {
+            console.log("annotation property panel open : " + value);
+          });
+        break;
+      case "setReadOnly":
+        this.setState({ showReadOnlyForm: true });
+        break;
+      case "setEditMode":
+        this.setState({ showEditModeForm: true });
+        break;
+      case "getDocPreference":
+        this.eViewerObj.docPreferenceService
+          .getDocumentPreference()
+          .then((response) => {
+            console.log(response);
+          });
+        break;
+      case "viewAnnotationProperties":
+        this.eViewerObj.annotationService.viewAnnotationProperties();
+        break;
+      case "bringtoBackAnnotation":
+        this.eViewerObj.annotationService.sendToBack();
+        break;
+      case "bringtoFrontAnnotation":
+        this.eViewerObj.annotationService.bringToFront();
+        break;
+      case "deleteAllAnnotationsfromPage":
+        this.eViewerObj.annotationService.removeAllAnnotationsfromPage();
+        break;
+      case "deleteAllAnnotationsfromDocument":
+        this.eViewerObj.annotationService.removeAllAnnotationsfromDocument();
+        break;
+      case "deleteSelectedAnnotation":
+        this.eViewerObj.annotationService.removeSelectedAnnotation();
+        break;
+      case "locateNextAnnotatedPage":
+        this.eViewerObj.documentService.gotoNextAnnotatedPage();
+        break;
+      case "selectNextAnnotationOnPage":
+        this.eViewerObj.annotationService.selectNextAnnotationOnPage();
+        break;
+      case "rubberbandzoom":
+        this.eViewerObj.documentService.loadRubberbandZoom();
+        break;
+      case "clearAnnotationSelections":
+        this.eViewerObj.annotationService.clearAnnotationSelections();
+        break;
+      case "print":
+        this.eViewerObj.documentService.showPrintDialog(true);
+        break;
+      case "exportDoc":
+        this.eViewerObj.documentService.showExportDialog(true);
+        break;
+      case "snipping_Tool":
+        this.eViewerObj.documentService.loadSnippingTool();
+        break;
+      case "customZoom":
+        this.setState({ iscustomZoomDivShow: true });
+        break;
+      case "enableDragAndDrop":
+        this.setState({ showEnableDragDropForm: true });
+        break;
+      case "setActiveTab":
+        this.setState({ showSetActiveTabForm: true });
+        break;
       default:
         break;
     }
@@ -2576,14 +2788,14 @@ class App extends Component {
       options.opacity = +event.target[5].value;
       options.fillColor = event.target[6].value;
     } else if (this.selectedAnnotation.name === "text") {
-      options.borderWidth = +event.target[5].value;
+      options.borderWidth = event.target[5].value;
       options.borderColor = event.target[6].value;
       options.fillColor = event.target[7].value;
       options.opacity = +event.target[8].value;
       options.fontFace = event.target[9].value;
       options.fontSize = +event.target[10].value;
       options.FontColor = event.target[11].value;
-    } else if(this.selectedAnnotation.name === "predefinedText") {
+    } else if (this.selectedAnnotation.name === "predefinedText") {
       options.enterText = event.target[1].value;
       options.rotateWithPage = event.target[2].value;
       options.borderWidth = event.target[3].value;
@@ -2638,7 +2850,7 @@ class App extends Component {
       options.opacity = undefined;
     }
     if (
-      (options.borderWidth === undefined) &&
+      options.borderWidth === undefined &&
       (options.borderOpacity === 0 || options.borderOpacity === undefined) &&
       (options.borderColor === "" || options.borderColor === undefined) &&
       (options.fillColor === "" || options.fillColor === undefined) &&
@@ -2689,7 +2901,7 @@ class App extends Component {
 
     let annotationData = null;
 
-    if(this.selectedAnnotation.name != "predefinedText") {
+    if (this.selectedAnnotation.name != "predefinedText") {
       this.selectedAnnotation.startX = Number(event.target[1].value);
       this.selectedAnnotation.startY = Number(event.target[2].value);
       this.selectedAnnotation.endX = Number(event.target[3].value);
@@ -3484,8 +3696,122 @@ class App extends Component {
               <option className="text-dark" value="redo">
                 Redo
               </option>
+              <option className="text-dark" value="openTextSearch">
+                Open Text Search
+              </option>
+              <option className="text-dark" value="closeTextSearch">
+                Close Text Search
+              </option>
+              <option className="text-dark" value="openAnnPropPanel">
+                Open AnnotationProperty Panel
+              </option>
+              <option className="text-dark" value="closeAnnPropPanel">
+                Close AnnotationProperty Panel
+              </option>
+              <option className="text-dark" value="setReadOnly">
+                Set Read Only
+              </option>
+              <option className="text-dark" value="setEditMode">
+                Set Edit Mode
+              </option>
+              <option className="text-dark" value="getDocPreference">
+                Get Document Preference
+              </option>
+              <option className="text-dark" value="viewAnnotationProperties">
+                View Annotation Properties
+              </option>
+              <option className="text-dark" value="bringtoBackAnnotation">
+                Send to Back Annotation
+              </option>
+              <option className="text-dark" value="bringtoFrontAnnotation">
+                Bring to Front Annotation
+              </option>
+              <option
+                className="text-dark"
+                value="deleteAllAnnotationsfromPage"
+              >
+                Delete All Annotations from Page
+              </option>
+              <option
+                className="text-dark"
+                value="deleteAllAnnotationsfromDocument"
+              >
+                Delete All Annotations from Document
+              </option>
+              <option className="text-dark" value="deleteSelectedAnnotation">
+                Delete Selected Annotation
+              </option>
+              <option className="text-dark" value="locateNextAnnotatedPage">
+                Locate Next Annotated Page
+              </option>
+              <option className="text-dark" value="rubberbandzoom">
+                Rubber band zoom
+              </option>
+              <option className="text-dark" value="clearAnnotationSelections">
+                Clear All Selections
+              </option>
+
+              <option className="text-dark" value="print">
+                Print Document
+              </option>
+              <option className="text-dark" value="exportDoc">
+                Export Document
+              </option>
+              <option className="text-dark" value="snipping_Tool">
+                Snipping Tool
+              </option>
+              <option className="text-dark" value="selectNextAnnotationOnPage">
+                Select Next Annotation On Page
+              </option>
+              <option className="text-dark" value="customZoom">
+                Custom Zoom
+              </option>
+              <option className="text-dark" value="enableDragAndDrop">
+                Enable Drag and Drop
+              </option>
+              <option class="text-dark" value="setActiveTab">
+                Set Active Tab
+              </option>
+              <option className="text-dark" value="exportToPasswordProtected">
+                Export to Password Protected
+              </option>
             </select>
           </div>
+
+          {this.state.iscustomZoomDivShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-horizontal">
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="number"
+                            onChange={this.customZoomValue}
+                            value={this.state.customZoom}
+                            className="form-control form-control-sm"
+                            name="customZoom"
+                            placeholder="25-300%"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.submitCustomZoom}
+                      >
+                        Go
+                      </button>
+                      &nbsp;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
 
           {this.state.isUploadDivShow === true ? (
             <>
@@ -3579,6 +3905,16 @@ class App extends Component {
                         </div>
                         <div>
                           <input
+                            type="number"
+                            className="form-control form-control-sm"
+                            name="isEditMode"
+                            onChange={this.editModeType}
+                            value={this.state.editMode}
+                            placeholder="Edit Mode"
+                          />
+                        </div>
+                        <div>
+                          <input
                             type="checkbox"
                             id="thumbIconCallbackNull"
                             checked={this.state.isThumbIconCallbackNull}
@@ -3605,7 +3941,7 @@ class App extends Component {
           ) : (
             ""
           )}
-           {this.state.isGetXFDFannData === true ? (
+          {this.state.isGetXFDFannData === true ? (
             <>
               <div class="login-box card div-mst">
                 <textarea
@@ -3843,6 +4179,16 @@ class App extends Component {
                             name="pageNO"
                             placeholder="Enter Page No"
                             required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="scrollToTop"
+                            onChange={this.scrollToTopType}
+                            value={this.state.scrollToTop}
+                            placeholder="ScrollToTop TRUE or FALSE"
                           />
                         </div>
                       </div>
@@ -4223,6 +4569,52 @@ class App extends Component {
                       </div>
                       <button type="submit" className="btn btn-primary">
                         Export
+                      </button>
+                      &nbsp;
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.isExportToPasswordProtectedDivShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.submitPasswordExportDetail}
+                    >
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            onChange={this.DocNameValue}
+                            value={this.state.DocName}
+                            className="form-control form-control-sm"
+                            name="DocName"
+                            placeholder="Document Name"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <input
+                            type="password"
+                            onChange={this.passwordValue}
+                            value={this.state.password}
+                            className="form-control form-control-sm"
+                            name="password"
+                            placeholder="Enter Password"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Export To Password Protected
                       </button>
                       &nbsp;
                     </form>
@@ -4826,18 +5218,18 @@ class App extends Component {
                       </div>
                       {this.selectedAnnotation.name === "predefinedText" && (
                         <>
-                        <input
-                          type="text"
-                          className="form-control form-control-sm col-sm-3"
-                          name="enterText"
-                          placeholder="Enter Text"
-                        />
-                        <input
-                          type="text"
-                          className="form-control form-control-sm col-sm-3"
-                          name="rotateWithPage"
-                          placeholder="rotateWithPage: true or false"
-                        />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="enterText"
+                            placeholder="Enter Text"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="rotateWithPage"
+                            placeholder="rotateWithPage: true or false"
+                          />
                         </>
                       )}
                       {this.selectedAnnotation.name !== "predefinedText" && (
@@ -4955,8 +5347,8 @@ class App extends Component {
                           />
                         </>
                       )}
-                      {(this.selectedAnnotation.name === "text" || 
-                      this.selectedAnnotation.name === "predefinedText") && (
+                      {(this.selectedAnnotation.name === "text" ||
+                        this.selectedAnnotation.name === "predefinedText") && (
                         <>
                           <input
                             type="text"
@@ -7076,6 +7468,196 @@ class App extends Component {
                       </div>
                       <button type="submit" className="btn btn-primary">
                         Set Drawing Mode
+                      </button>
+                      &nbsp;
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.showOpenTextSearchForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.submitOpenTextSearch}
+                    >
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="alignTowards"
+                            value={this.state.alignTowards}
+                            placeholder="left or right"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Submit
+                      </button>
+                      &nbsp;
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.showReadOnlyForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.submitReadOnly}
+                    >
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="docId"
+                            placeholder="Document ID"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="readOnly"
+                            placeholder="readOnly(true or false)"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Submit
+                      </button>
+                      &nbsp;
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.showEnableDragDropForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.submitEnableDragDrop}
+                    >
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="docId"
+                            placeholder="Document ID"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="enable"
+                            placeholder="enable(true or false)"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Submit
+                      </button>
+                      &nbsp;
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+          {this.state.showEditModeForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.submitSetEditMode}
+                    >
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="docId"
+                            placeholder="Document ID"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="editMode"
+                            placeholder="editMode(1,2 or 3)"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Submit
+                      </button>
+                      &nbsp;
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.showSetActiveTabForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.submitSetActiveTab}
+                    >
+                      <div className="form-group">
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="activeTabName"
+                            placeholder="Enter Active Tab Name"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Set Active Tab
                       </button>
                       &nbsp;
                     </form>
