@@ -74,6 +74,11 @@ class App extends Component {
       scrollToTop: false,
       showDragAnddropForm: false,
       showSetActiveTabForm: false,
+      isAnnPropPanelDivShow: false,
+      isChooseAnnPrefDivShow: false,
+      isShowOnlyDocDivShow: false,
+      isHideOnlyDocDivShow: false,
+      showCustomStatusForm: false,
     };
 
     this.captionMap = new Map();
@@ -120,6 +125,13 @@ class App extends Component {
       DocMetaDataJson: "",
     };
     this.state = {
+      annPreferenceJSON: "",
+    };
+    this.state = {
+      annType: "",
+      Expand: false,
+    };
+    this.state = {
       pageNO: 0,
     };
     this.state = {
@@ -147,6 +159,8 @@ class App extends Component {
       groupName: "",
       readOnly: false,
       editMode: 1,
+      customStatusFile: null,
+      newStatusText: "",
     };
 
     this.selectedAnnotation = {
@@ -289,13 +303,23 @@ class App extends Component {
 
     this.callBackAPIService.setAnnCreatedCallback((docID, annID, pageNo) => {
       console.log(
-        "annCreated: docID " + docID + " annID: " + annID + " pageNo: " + pageNo
+        "annCreated: docID " +
+          docID +
+          " annID: " +
+          annID +
+          " pageNo: " +
+          pageNo,
       );
     });
 
     this.callBackAPIService.setAnnDeletedCallback((docID, annID, pageNo) => {
       console.log(
-        "annDeleted: docID " + docID + " annID: " + annID + " pageNo: " + pageNo
+        "annDeleted: docID " +
+          docID +
+          " annID: " +
+          annID +
+          " pageNo: " +
+          pageNo,
       );
     });
 
@@ -677,6 +701,17 @@ class App extends Component {
     this.disableAllDiv();
   };
 
+  SubmtiSetCustomStatus = (event) => {
+    event.preventDefault();
+    this.eViewerObj.documentService.setCustomCommentStatus(
+      this.state.newStatusText,
+      this.state.customStatusFile,
+    );
+    this.disableAllDiv();
+    this.state.newStatusText = "";
+    this.state.customStatusFile = null;
+  };
+
   submitSetEditMode = (event) => {
     event.preventDefault();
     this.eViewerObj.docPreferenceService.setEditMode(
@@ -737,6 +772,10 @@ class App extends Component {
     var fontWeight = event.target[7].value;
     var icon = this.state.icon;
     var tabFontStyle = null;
+    let tabFontSize = event.target[15].value;
+    let focustabFontSize = event.target[16].value;
+    let tabFontFamily = event.target[17].value;
+    let focustabFontFamily = event.target[18].value;
     if (event.target[9].checked) {
       tabFontStyle = event.target[9].value;
     }
@@ -791,6 +830,8 @@ class App extends Component {
       fontStyle: fontStyle,
       fileName: fileName,
       icon: icon,
+      fontSize: tabFontSize,
+      fontFamily: tabFontFamily,
     };
     var focusStyle = {
       backgroundColor: focusBackgroundColor,
@@ -799,6 +840,8 @@ class App extends Component {
       fontStyle: focusFontStyle,
       fileName: focusfileName,
       icon: focusIcon,
+      fontSize: focustabFontSize,
+      fontFamily: focustabFontFamily,
     };
 
     this.eViewerObj.documentService
@@ -916,7 +959,11 @@ class App extends Component {
   };
 
   submitCustomZoom = () => {
-    this.eViewerObj.documentService.zoomTo(this.state.customZoom);
+    this.eViewerObj.documentService
+      .zoomTo(this.state.customZoom)
+      .then((response) => {
+        console.log(response);
+      });
     this.disableAllDiv();
   };
 
@@ -1159,6 +1206,42 @@ class App extends Component {
     this.disableAllDiv();
   };
 
+  submitOpenAnnPanel = () => {
+    let annData = {
+      annType: this.state.annType,
+      Expand: this.state.Expand,
+    };
+
+    this.eViewerObj.documentService.openAnnotationPropertyPanel(annData);
+    this.disableAllDiv();
+  };
+
+  setAnnPreference = () => {
+    let viewerPrefSrvc = this.eViewerObj.getViewerPreferenceService();
+    let preferencesPromise = viewerPrefSrvc.getUserPreferences();
+    preferencesPromise.then((preferences) => {
+      viewerPrefSrvc.setUserPreferences(
+        preferences.userPreferences,
+        preferences.shortcutPreferences,
+        this.state.annPreferenceJSON,
+      );
+    });
+
+    this.disableAllDiv();
+  };
+
+  submitShowOnlyDoc = () => {
+    let docId = this.state.docId;
+    this.eViewerObj.documentService.showOnlyDocument(docId);
+    this.disableAllDiv();
+  };
+
+  submitHideOnlyDoc = () => {
+    let docId = this.state.docId;
+    this.eViewerObj.documentService.hideOnlyDocument(docId);
+    this.disableAllDiv();
+  };
+
   submitSnippingToolForm = (event) => {
     event.preventDefault();
     this.eViewerObj = null;
@@ -1240,6 +1323,7 @@ class App extends Component {
       includeWatermark: true,
       includeComments: true,
       userPassword: this.state.password,
+      isExportPasswordProtected: true,
     };
 
     const fileType = "pdf";
@@ -1364,6 +1448,11 @@ class App extends Component {
       showEditModeForm: false,
       showEnableDragDropForm: false,
       showSetActiveTabForm: false,
+      isAnnPropPanelDivShow: false,
+      isChooseAnnPrefDivShow: false,
+      isShowOnlyDocDivShow: false,
+      isHideOnlyDocDivShow: false,
+      showCustomStatusForm: false,
     });
   };
 
@@ -1411,6 +1500,40 @@ class App extends Component {
   };
   docTabFocusBackgroundColor = (events) => {
     this.setState({ focusBackgroundColor: events.target.value });
+  };
+  docTabFocusFontSize = (events) => {
+    this.setState({ focustabFontSize: events.target.value });
+  };
+  // docTabFontSize = (events) => {
+  //   this.setState({ tabFontSize: events.target.value });
+  // };
+  docTabFontSize = (event) => {
+    let value = parseInt(event.target.value, 10);
+    if (isNaN(value)) {
+      this.setState({ tabFontSize: "" });
+      return;
+    }
+    if (value < 1) value = 1;
+    if (value > 16) value = 16;
+
+    this.setState({ tabFontSize: value });
+  };
+  // docTabFocusFontSize = (events) => {
+  //   this.setState({ tabFocusFontSize: events.target.value });
+  // };
+  docTabFocusFontSize = (event) => {
+    let value = parseInt(event.target.value, 10);
+    if (isNaN(value)) {
+      this.setState({ tabFocusFontSize: "" });
+      return;
+    }
+    if (value < 1) value = 1;
+    if (value > 16) value = 16;
+
+    this.setState({ tabFocusFontSize: value });
+  };
+  docTabFontFamily = (events) => {
+    this.setState({ tabFontFamily: events.target.value });
   };
   docTabColor = (events) => {
     this.setState({ color: events.target.value });
@@ -1532,6 +1655,22 @@ class App extends Component {
     this.setState({ pageOption: events.target.value });
   };
 
+  annNameValue = (events) => {
+    this.setState({ annType: events.target.value });
+  };
+
+  annNameExpandValue = (events) => {
+    this.setState({ Expand: events.target.value });
+  };
+
+  showOnlyDocValue = (events) => {
+    this.setState({ docId: events.target.value });
+  };
+
+  hideOnlyDocValue = (events) => {
+    this.setState({ docId: events.target.value });
+  };
+
   onStartPage = (events) => {
     this.setState({ startPage: events.target.value });
   };
@@ -1553,6 +1692,20 @@ class App extends Component {
 
   onChangeDirtyOption = (events) => {
     this.setState({ isSetDocDirty: events.target.value });
+  };
+
+  setAnnPreferenceJSONpath = (event) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(event.target.files[0]);
+    reader.onload = (event) => {
+      let defPrefJSON = event.target.result;
+      if (event.target.result !== undefined) {
+        defPrefJSON = atob(
+          defPrefJSON.split("data:application/json;base64,")[1],
+        );
+      }
+      this.state.annPreferenceJSON = JSON.parse(defPrefJSON);
+    };
   };
 
   setAnnDiv = () => {
@@ -1727,18 +1880,73 @@ class App extends Component {
         break;
 
       case "closeFile":
-        this.eViewerObj.documentService.closeDocument("").then((response) => {
-          this.setState({ defaultDisabled: false });
-          console.log("closeFile: " + response);
-        });
+        let messageCallback = async (docId) => {
+          let docName = "";
+          await this.eViewerObj.documentService
+            .getDocumentInfo(docId)
+            .then((response) => {
+              docName = response.info.docName;
+            });
+          return `Do you wish to save the document: ${docName} with DocId ${docId} before closing?`;
+          //return `Do you wish to save the document: ${docId} before closing?`;
+          // return `
+          //         <h2>Save Document?</h2>
+          //         <p>
+          //           Do you wish to save the document:
+          //           <strong>${docName}</strong>
+          //           with DocId <strong>${docId}</strong>
+          //           before closing?
+          //         </p>
+          //       `;
+          // return `
+          //                           <html>
+          //         <head>
+          //         <title>Page Title</title>
+          //         </head>
+          //         <body>
+
+          //         <h1>This is a Heading</h1>
+          //         <p>This is a paragraph.</p>
+
+          //         </body>
+          //         </html>
+          //       `;
+        };
+        this.eViewerObj.documentService
+          .closeDocument("", messageCallback)
+          .then((response) => {
+            this.setState({ defaultDisabled: false });
+            console.log(response);
+          });
 
         break;
       case "closeAllDoc":
+        let closeResponseCallback = (response) => {
+          console.log(response);
+          //console.log(JSON.stringify(response));
+        };
+        let messageCallbackForcloseAllDoc = async (docId) => {
+          let docName = "";
+          await this.eViewerObj.documentService
+            .getDocumentInfo(docId)
+            .then((response) => {
+              docName = response.info.docName;
+            });
+          // return `
+          //       <h2>Save Document?</h2>
+          //     `;
+          return `Do you wish to save the document: ${docName} with DocId ${docId} before closing?`;
+          // return `Do you wish to save the document: ${docId} before closing?`;
+        };
         this.eViewerObj.documentService
-          .closeAllDocuments("")
+          .closeAllDocuments(
+            "",
+            messageCallbackForcloseAllDoc,
+            closeResponseCallback,
+          )
           .then((response) => {
             this.setState({ defaultDisabled: false });
-            console.log("closeAllDoc: " + response);
+            console.log(response);
           });
 
         break;
@@ -2164,11 +2372,7 @@ class App extends Component {
         this.eViewerObj.documentService.closeTextSearch();
         break;
       case "openAnnPropPanel":
-        this.eViewerObj.documentService
-          .openAnnotationPropertyPanel()
-          .then((value) => {
-            console.log("annotation property panel open : " + value);
-          });
+        this.setState({ isAnnPropPanelDivShow: true });
         break;
       case "closeAnnPropPanel":
         this.eViewerObj.documentService
@@ -2191,43 +2395,89 @@ class App extends Component {
           });
         break;
       case "viewAnnotationProperties":
-        this.eViewerObj.annotationService.viewAnnotationProperties();
+        this.eViewerObj.annotationService
+          .viewAnnotationProperties()
+          .then((response) => {
+            console.log("annotation Properties Details " + response);
+          });
         break;
       case "bringtoBackAnnotation":
-        this.eViewerObj.annotationService.sendToBack();
+        this.eViewerObj.annotationService.sendToBack().then((response) => {
+          console.log("bringtoBackAnnotation details " + response);
+        });
         break;
       case "bringtoFrontAnnotation":
-        this.eViewerObj.annotationService.bringToFront();
+        this.eViewerObj.annotationService.bringToFront().then((response) => {
+          console.log("bringtoFrontAnnotation detials " + response);
+        });
         break;
       case "deleteAllAnnotationsfromPage":
-        this.eViewerObj.annotationService.removeAllAnnotationsfromPage();
+        this.eViewerObj.annotationService
+          .removeAllAnnotationsfromPage()
+          .then((response) => {
+            console.log(response);
+          });
         break;
       case "deleteAllAnnotationsfromDocument":
-        this.eViewerObj.annotationService.removeAllAnnotationsfromDocument();
+        this.eViewerObj.annotationService
+          .removeAllAnnotationsfromDocument()
+          .then((response) => {
+            console.log(response);
+          });
         break;
       case "deleteSelectedAnnotation":
-        this.eViewerObj.annotationService.removeSelectedAnnotation();
+        this.eViewerObj.annotationService
+          .removeSelectedAnnotation()
+          .then((response) => {
+            console.log("deleteSelectedAnnotation details " + response);
+          });
         break;
       case "locateNextAnnotatedPage":
-        this.eViewerObj.documentService.gotoNextAnnotatedPage();
+        this.eViewerObj.documentService
+          .gotoNextAnnotatedPage()
+          .then((response) => {
+            console.log("locateNextAnnotatedPage details " + response);
+          });
         break;
       case "selectNextAnnotationOnPage":
-        this.eViewerObj.annotationService.selectNextAnnotationOnPage();
+        this.eViewerObj.annotationService
+          .selectNextAnnotationOnPage()
+          .then((response) => {
+            console.log("selectNextAnnotationOnPage details " + response);
+          });
         break;
       case "rubberbandzoom":
-        this.eViewerObj.documentService.loadRubberbandZoom();
+        this.eViewerObj.documentService
+          .loadRubberbandZoom()
+          .then((response) => {
+            console.log(response);
+          });
         break;
       case "clearAnnotationSelections":
-        this.eViewerObj.annotationService.clearAnnotationSelections();
+        this.eViewerObj.annotationService
+          .clearAnnotationSelections()
+          .then((response) => {
+            console.log(response);
+          });
         break;
       case "print":
-        this.eViewerObj.documentService.showPrintDialog(true);
+        this.eViewerObj.documentService
+          .showPrintDialog(true)
+          .then((response) => {
+            console.log(response);
+          });
         break;
       case "exportDoc":
-        this.eViewerObj.documentService.showExportDialog(true);
+        this.eViewerObj.documentService
+          .showExportDialog(true)
+          .then((response) => {
+            console.log(response);
+          });
         break;
       case "snipping_Tool":
-        this.eViewerObj.documentService.loadSnippingTool();
+        this.eViewerObj.documentService.loadSnippingTool().then((response) => {
+          console.log(response);
+        });
         break;
       case "customZoom":
         this.setState({ iscustomZoomDivShow: true });
@@ -2237,6 +2487,18 @@ class App extends Component {
         break;
       case "setActiveTab":
         this.setState({ showSetActiveTabForm: true });
+        break;
+      case "chooseAnnPref":
+        this.setState({ isChooseAnnPrefDivShow: true });
+        break;
+      case "showOnlyDoc":
+        this.setState({ isShowOnlyDocDivShow: true });
+        break;
+      case "hideOnlyDoc":
+        this.setState({ isHideOnlyDocDivShow: true });
+        break;
+      case "setCustomStatus":
+        this.setState({ showCustomStatusForm: true });
         break;
       default:
         break;
@@ -2399,7 +2661,8 @@ class App extends Component {
       opacity: +event.target[10].value,
       fontFace: event.target[11].value,
       fontSize: +event.target[12].value,
-      FontColor: event.target[13].value,
+      fontColor: event.target[13].value,
+      dashType: event.target[14].value,
       // image: "BASE64STRING or relative path to image"
     };
 
@@ -2411,11 +2674,12 @@ class App extends Component {
       options.borderOpacity == 0 &&
       options.borderColor === "" &&
       options.fillColor === "" &&
-      (isNaN(options.opacity) || event.target[9].value === "") &&
+      (isNaN(options.opacity) || event.target[9].value === "") && // nilesh for Generic_eVewer7_2181: APINPM:S2,P2
       options.fontFace === "" &&
       options.fontSize === 0 &&
-      options.FontColor === "" &&
-      options.opacity === 0
+      options.fontColor === "" &&
+      options.opacity === 0 && 
+      options.dashType === ""
     ) {
       options = undefined;
     }
@@ -2766,11 +3030,17 @@ class App extends Component {
       fontSize: 0,
       FontColor: "",
       borderOpacity: "",
+      annName:this.selectedAnnotation.name,
+      dashType: "",
     };
     if (
-      this.selectedAnnotation.name === "line" ||
-      this.selectedAnnotation.name === "arrow"
+      this.selectedAnnotation.name === "line"
     ) {
+      options.borderWidth = +event.target[5].value;
+      options.borderColor = event.target[6].value;
+      options.opacity = +event.target[7].value;
+      options.dashType = event.target[8].value
+    } else if(this.selectedAnnotation.name === "arrow") {
       options.borderWidth = +event.target[5].value;
       options.borderColor = event.target[6].value;
       options.opacity = +event.target[7].value;
@@ -2794,7 +3064,7 @@ class App extends Component {
       options.opacity = +event.target[8].value;
       options.fontFace = event.target[9].value;
       options.fontSize = +event.target[10].value;
-      options.FontColor = event.target[11].value;
+      options.fontColor = event.target[11].value;
     } else if (this.selectedAnnotation.name === "predefinedText") {
       options.enterText = event.target[1].value;
       options.rotateWithPage = event.target[2].value;
@@ -2803,7 +3073,7 @@ class App extends Component {
       options.fillColor = event.target[5].value;
       options.opacity = +event.target[6].value;
       options.fontFace = event.target[7].value;
-      options.FontColor = event.target[8].value;
+      options.fontColor = event.target[8].value;
     } else if (this.selectedAnnotation.name === "checkpoint") {
       options.fillColor = event.target[5].value;
     } else if (this.selectedAnnotation.name === "stamp") {
@@ -2812,7 +3082,7 @@ class App extends Component {
       options.fillColor = event.target[7].value;
       options.fontFace = event.target[8].value;
       options.fontSize = +event.target[9].value;
-      options.FontColor = event.target[10].value;
+      options.fontColor = event.target[10].value;
     }
 
     if (
@@ -2859,7 +3129,8 @@ class App extends Component {
       (options.fontSize === 0 ||
         options.fontSize === undefined ||
         isNaN(options.fontSize)) &&
-      (options.FontColor === "" || options.FontColor === undefined)
+      (options.fontColor === "" || options.fontColor === undefined) &&
+      (options.dashType === "" || options.dashType === undefined)
     ) {
       options = undefined;
     }
@@ -3344,6 +3615,14 @@ class App extends Component {
     this.setState({ modeName: event.currentTarget.value });
   };
 
+  selectCustomStatusFile = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    this.setState({
+      customStatusFile: file,
+    });
+  };
+
   render() {
     return (
       <>
@@ -3775,6 +4054,18 @@ class App extends Component {
               <option className="text-dark" value="exportToPasswordProtected">
                 Export to Password Protected
               </option>
+              <option className="text-dark" value="chooseAnnPref">
+                Annotation Preference JSON
+              </option>
+              <option className="text-dark" value="showOnlyDoc">
+                Show Only Document
+              </option>
+              <option className="text-dark" value="hideOnlyDoc">
+                Hide Only Document
+              </option>
+              <option className="text-dark" value="setCustomStatus">
+                Add Custom Comment Status
+              </option>
             </select>
           </div>
 
@@ -3805,6 +4096,59 @@ class App extends Component {
                       </button>
                       &nbsp;
                     </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.showCustomStatusForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.addCustomStatusHandler}
+                    >
+                      <div className="form-group">
+                        {/* Status Text */}
+                        <div>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            name="statusText"
+                            placeholder="Enter Status Text"
+                            value={this.state.newStatusText}
+                            onChange={(e) =>
+                              this.setState({ newStatusText: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+
+                        {/* Image Upload */}
+                        <div style={{ marginTop: "8px" }}>
+                          <input
+                            type="file"
+                            className="form-control form-control-sm"
+                            name="statusImage"
+                            onChange={this.selectCustomStatusFile}
+                            accept="image/*"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        onClick={this.SubmtiSetCustomStatus}
+                      >
+                        Submit
+                      </button>
+                    </form>
                   </div>
                 </div>
               </div>
@@ -4660,6 +5004,151 @@ class App extends Component {
             ""
           )}
 
+          {this.state.isAnnPropPanelDivShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          onChange={this.annNameValue}
+                          value={this.state.annType}
+                          className="form-control form-control-sm"
+                          name="annType"
+                          placeholder="Enter Annotation Name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          onChange={this.annNameExpandValue}
+                          value={this.state.Expand}
+                          className="form-control form-control-sm"
+                          name="Expand"
+                          placeholder="True or False"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      onClick={this.submitOpenAnnPanel}
+                    >
+                      Open
+                    </button>
+                    &nbsp;
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.isChooseAnnPrefDivShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.setAnnPreference}
+                    >
+                      <div className="form-group">
+                        <input
+                          type="file"
+                          className="form-control form-control-sm wrapword"
+                          id="fil-id"
+                          name="fileURL"
+                          onChange={this.setAnnPreferenceJSONpath}
+                          required
+                        />
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Insert
+                      </button>
+                      &nbsp;
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.isShowOnlyDocDivShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          onChange={this.showOnlyDocValue}
+                          value={this.state.docId}
+                          className="form-control form-control-sm"
+                          name="docId"
+                          placeholder="Enter Doc ID"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      onClick={this.submitShowOnlyDoc}
+                    >
+                      Submit
+                    </button>
+                    &nbsp;
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.isHideOnlyDocDivShow === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <div className="form-group">
+                      <div>
+                        <input
+                          type="text"
+                          onChange={this.hideOnlyDocValue}
+                          value={this.state.docId}
+                          className="form-control form-control-sm"
+                          name="docId"
+                          placeholder="Enter Doc ID"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      onClick={this.submitHideOnlyDoc}
+                    >
+                      Submit
+                    </button>
+                    &nbsp;
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
           {this.state.isSnippingToolDivShow === true ? (
             <>
               <div>
@@ -4937,6 +5426,12 @@ class App extends Component {
                           className="form-control form-control-sm col-sm-3"
                           name="fontColor"
                           placeholder="FontColor"
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm col-sm-3"
+                          name="dashType"
+                          placeholder="dashType"
                         />
                       </div>
                     </div>
@@ -5272,8 +5767,35 @@ class App extends Component {
                           </div>
                         </>
                       )}
-                      {(this.selectedAnnotation.name === "line" ||
-                        this.selectedAnnotation.name === "arrow") && (
+                      {this.selectedAnnotation.name === "line" && (
+                        <>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderWidth"
+                            placeholder="borderWidth"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderColor"
+                            placeholder="borderColor"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="borderOpacity"
+                            placeholder="borderOpacity"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="dashType"
+                            placeholder="dashType"
+                          />
+                        </>
+                      )}
+                      {this.selectedAnnotation.name === "arrow" && (
                         <>
                           <input
                             type="text"
@@ -6412,6 +6934,50 @@ class App extends Component {
                                 name="icon"
                                 accept="image/png, image/gif, image/jpeg, image/bmp"
                                 onChange={this.docTabFocusIcon}
+                              />
+                            </div>
+                          </div>
+                          <div className="form-row">
+                            <div className="col">
+                              <input
+                                type="number"
+                                min="1"
+                                max="16"
+                                className="form-control form-control-sm"
+                                name="fontSize"
+                                onChange={this.docTabFontSize}
+                                placeholder="Font Size (1-16)"
+                              />
+                            </div>
+                            <div className="col">
+                              <input
+                                type="number"
+                                min="1"
+                                max="16"
+                                className="form-control form-control-sm"
+                                name="fontSize"
+                                onChange={this.docTabFocusFontSize}
+                                placeholder="Focus Font Size (1-16)"
+                              />
+                            </div>
+                          </div>
+                          <div className="form-row">
+                            <div className="col">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="color"
+                                onChange={this.docTabFontFamily}
+                                placeholder="Font Family"
+                              />
+                            </div>
+                            <div className="col">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                name="color"
+                                onChange={this.docTabFocusFontFamily}
+                                placeholder="Focus Font Family"
                               />
                             </div>
                           </div>

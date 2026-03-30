@@ -111,9 +111,25 @@ window._pageCopied = function (docID, pageNo) {
   } catch (exp) {}
 };
 
-window._pagePasted = function (docID, pageNo) {
+window._pagePasted = function (
+  sourceDocID,
+  sourcePageNos,
+  targetDocID,
+  targetPageNo
+) {
   try {
-    console.log("pagePasted: " + docID + " current pageNo: " + pageNo);
+    console.log(
+      "pagePasted details: " +
+        " sourceDocID: " +
+        sourceDocID +
+        ",	sourcePageNos: [" +
+        sourcePageNos +
+        "], targetDocID: " +
+        targetDocID +
+        ", targetPageNo: [" +
+        targetPageNo +
+        "]"
+    );
   } catch (exp) {}
 };
 
@@ -196,28 +212,37 @@ window._tabSwitch = function (outFocusViewerDocID, inFocusViewerDocID) {
   } catch (exp) {}
 };
 
-window._docSplit = function (baseDocID, splitDocID) {
-  console.log(
-    "OLD API: baseDocID: " + baseDocID + " splitDocID: " + splitDocID
-  );
+window._docSplit = function (splitDocID) {
+  console.log("Doc Split, new docID: " + splitDocID);
 };
 
 window._pageInvert = function (docID, pageNo) {
   console.log("Page Invert DocID: " + docID + " - Page: " + pageNo);
 };
 
-window._docRedact = function (docID) {
-  console.log("_docRedact: " + docID);
+window._docRedact = function (docId) {
+  try {
+    console.log("redactUpdated: docID " + docId);
+  } catch (exp) {}
+};
+
+window._rotate = function (docId, pageNo, rotation) {
+  try {
+    console.log(
+      "docId: " + docId + " pageNo " + pageNo + " rotation " + rotation * 90
+    );
+  } catch (exp) {}
+};
+
+window._drawingModeChange = function (drawingMode) {
+  try {
+    console.log("Current drawing mode: " + drawingMode);
+  } catch (exp) {}
 };
 
 window._dragDrop = function (obj) {
   try {
     console.log(obj.action);
     console.log(obj.docId);
-  } catch (exp) {}
-};
-window._drawingModeChange = function (drawingMode) {
-  try {
-    console.log("Current drawing mode: " + drawingMode);
   } catch (exp) {}
 };

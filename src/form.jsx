@@ -346,6 +346,23 @@ class Form extends Component {
     sigSrvc.setAvailableAppearances(this.state.appearanceList);
     sigSrvc.setAvailableCertificates(this.state.savedCertificates);
 
+    if (this.props.useDocumentumConnector) {
+      this.eViewerObj
+        .getDocumentService()
+        .setDocumentumCredentials("postgres", "password", "documentum")
+        .then((res) => {
+          console.log(res);
+        });
+    }
+    if (this.props.useICNConnector) {
+      this.eViewerObj
+        .getDocumentService()
+        .setICNFileNetCredentials("administrator", "MstSrv@05", "p8")
+        .then((res) => {
+          console.log(res);
+        });
+    }
+
     this.eViewerObj.setTabMenuHandler(this.state.setTabMenuHandler);
 
     if (this.state.savingEndpointRejectValue === true) {

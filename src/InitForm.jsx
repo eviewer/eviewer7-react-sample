@@ -113,7 +113,12 @@ class InitForm extends Component {
     this.setState({
       isDocumentumConnectorChecked: !this.state.isDocumentumConnectorChecked,
     });
-  }
+  };
+  toggleICNConnector = () => {
+    this.setState({
+      isICNConnectorChecked: !this.state.isICNConnectorChecked,
+    });
+  };
 
   toggleOverrideEnableHyperLink = () => {
     this.setState({
@@ -209,6 +214,16 @@ class InitForm extends Component {
               onChange={this.toggleDocumentumConnector}
             />
             Use Documentum Connector
+          </label>
+        </div>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              defaultChecked={this.state.isICNConnectorChecked}
+              onChange={this.toggleICNConnector}
+            />
+            Use ICN Connector
           </label>
         </div>
         <div>
