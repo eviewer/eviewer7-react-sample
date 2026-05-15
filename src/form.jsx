@@ -25,7 +25,7 @@ class Form extends Component {
             onClick: function () {
               self.tabMenuCloseDoc();
             },
-            disabled: true,
+            disabled: true
           },
           { type: "separator" },
           {
@@ -35,8 +35,8 @@ class Form extends Component {
             onClick: function () {
               self.tabMenuCloseAllDoc();
             },
-            disabled: false,
-          },
+            disabled: false
+          }
         ];
       },
       savingEndpoint: (response) => {
@@ -48,16 +48,18 @@ class Form extends Component {
           if (annMimeType === "application/octet-stream") {
             // Download TL
             const downloadType = "application/octet-stream";
-            const tlfile = new Blob([annContent], {
-              type: downloadType,
-            });
+            let link = window.document.createElement("a");
+            if (response.annContent != null) {
+              const tlfile = new Blob([annContent], {
+                type: downloadType
+              });
 
-            const data = window.URL.createObjectURL(tlfile);
-            const link = window.document.createElement("a");
-            window.document.body.appendChild(link);
-            link.href = data;
-            link.download = "sample.t_l";
-            link.click();
+              const data = window.URL.createObjectURL(tlfile);
+              window.document.body.appendChild(link);
+              link.href = data;
+              link.download = "sample.modcap";
+              link.click();
+            }
             //
 
             // const blob = new Blob([docContent], { type: mimeType });
@@ -112,31 +114,31 @@ class Form extends Component {
   handleInputsavingEndpoint = (event) => {
     if (event.target.value.length > 0) {
       this.setState({
-        savingEndpoint: event.target.value,
+        savingEndpoint: event.target.value
       });
     }
   };
   handleInputocrEndpoint = (event) => {
     this.setState({
-      ocrEndpoint: event.target.value,
+      ocrEndpoint: event.target.value
     });
   };
 
   handleUserPrefUrl = (event) => {
     this.setState({
-      userPrefEndPoint: event.target.value,
+      userPrefEndPoint: event.target.value
     });
   };
 
   handleShortcutPrefPrefUrl = (event) => {
     this.setState({
-      shortcutPrefEndPoint: event.target.value,
+      shortcutPrefEndPoint: event.target.value
     });
   };
 
   handleRegularExpression = (event) => {
     this.setState({
-      regularExpression: event.target.value,
+      regularExpression: event.target.value
     });
   };
   // handleInputuserName = (event) => {
@@ -147,22 +149,22 @@ class Form extends Component {
 
   handleToken = (event) => {
     this.setState({
-      token: event.target.value,
+      token: event.target.value
     });
   };
   handleShowHideToolBar = (event) => {
     this.setState({
-      hideToolBar: event.target.checked,
+      hideToolBar: event.target.checked
     });
   };
   handleSavePayloadType = (event) => {
     this.setState({
-      saveMultipartPayLoadType: event.target.checked,
+      saveMultipartPayLoadType: event.target.checked
     });
   };
   handlesaveEndpointReject = (event) => {
     this.setState({
-      savingEndpointRejectValue: event.target.checked,
+      savingEndpointRejectValue: event.target.checked
     });
   };
 
@@ -288,7 +290,7 @@ class Form extends Component {
         );
       }
       this.setState({
-        defaultPrefJSON: JSON.parse(defPrefJSON),
+        defaultPrefJSON: JSON.parse(defPrefJSON)
       });
     };
   };
@@ -304,7 +306,7 @@ class Form extends Component {
         );
       }
       this.setState({
-        defaultShortcutPrefJSON: JSON.parse(defPrefJSON),
+        defaultShortcutPrefJSON: JSON.parse(defPrefJSON)
       });
     };
   };
@@ -320,7 +322,7 @@ class Form extends Component {
         );
       }
       this.setState({
-        defaultAnnotationPrefJSON: JSON.parse(defPrefJSON),
+        defaultAnnotationPrefJSON: JSON.parse(defPrefJSON)
       });
     };
   };
@@ -337,9 +339,9 @@ class Form extends Component {
       type: "POST",
       headers: {
         Authorization: "Bearer " + this.state.token,
-        Accept: "application/octet-stream.",
+        Accept: "application/octet-stream."
       },
-      savePayLoadType: savePayloadType,
+      savePayLoadType: savePayloadType
     };
 
     let sigSrvc = this.eViewerObj.getSignatureService();
@@ -369,7 +371,7 @@ class Form extends Component {
       this.eViewerObj.setDocumentEndPointOptions(
         options,
         this.state.viewerServerURL,
-        this.state.savingEndpointReject,
+        this.state.savingEndpointReject, // for SSA
         // null, // set as null for Deloitte FL
         this.state.ocrEndpoint,
         this.state.hideToolBar
@@ -378,9 +380,11 @@ class Form extends Component {
       this.eViewerObj.setDocumentEndPointOptions(
         options,
         this.state.viewerServerURL,
-        this.state.savingEndpoint,
+        this.state.savingEndpoint, // for SSA
+        // null, // set as null for Deloitte FL
         this.state.ocrEndpoint,
-        this.state.hideToolBar
+        this.state.hideToolBar,
+        
       );
     }
 
@@ -394,7 +398,7 @@ class Form extends Component {
     }
 
     this.setState({
-      isViewerLoaded: true,
+      isViewerLoaded: true
     });
   };
   render() {
@@ -574,7 +578,7 @@ class Form extends Component {
         <div
           id="mainviewer"
           style={{
-            display: this.state.isViewerLoaded ? "block" : "none",
+            display: this.state.isViewerLoaded ? "block" : "none"
           }}
         >
           <App

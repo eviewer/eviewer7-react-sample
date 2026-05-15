@@ -115,21 +115,33 @@ window._pagePasted = function (
   sourceDocID,
   sourcePageNos,
   targetDocID,
-  targetPageNo
+  targetPageNo,
 ) {
   try {
-    console.log(
-      "pagePasted details: " +
-        " sourceDocID: " +
-        sourceDocID +
-        ",	sourcePageNos: [" +
-        sourcePageNos +
-        "], targetDocID: " +
-        targetDocID +
-        ", targetPageNo: [" +
-        targetPageNo +
-        "]"
-    );
+    if (sourceDocID == null && targetDocID == null) {
+      console.log(
+        "pagePasted details: " +
+          "	sourcePageNos: [" +
+          sourcePageNos +
+          "], " +
+          ", targetPageNo: [" +
+          targetPageNo +
+          "]",
+      );
+    } else {
+      console.log(
+        "pagePasted details: " +
+          " sourceDocID: " +
+          sourceDocID +
+          ",	sourcePageNos: [" +
+          sourcePageNos +
+          "], targetDocID: " +
+          targetDocID +
+          ", targetPageNo: [" +
+          targetPageNo +
+          "]",
+      );
+    }
   } catch (exp) {}
 };
 
@@ -226,6 +238,13 @@ window._docRedact = function (docId) {
   } catch (exp) {}
 };
 
+window._dragDrop = function (obj) {
+  try {
+    console.log(obj.action);
+    console.log(obj.docId);
+  } catch (exp) {}
+};
+
 window._rotate = function (docId, pageNo, rotation) {
   try {
     console.log(
@@ -237,12 +256,5 @@ window._rotate = function (docId, pageNo, rotation) {
 window._drawingModeChange = function (drawingMode) {
   try {
     console.log("Current drawing mode: " + drawingMode);
-  } catch (exp) {}
-};
-
-window._dragDrop = function (obj) {
-  try {
-    console.log(obj.action);
-    console.log(obj.docId);
   } catch (exp) {}
 };
