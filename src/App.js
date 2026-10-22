@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import "./App.css";
 import eViewerApp from "@mstechusa/eviewer7/js/eViewer7";
+import TranslationService from "eviewerjs/js/translation";
 import "./js/events";
 import { v4 as uuid } from "uuid";
 
@@ -18,6 +19,7 @@ class App extends Component {
     this.customIcon1 =
       "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAE6klEQVR4nO3Uu7HlRBhG0b7YhIABmeCSBMGQGM4Eg4kxBt5gcLtghvs6L7WkvZbTJe+vUn37aYwvI+7HMcavq49gmd9WH7DSkwCMn8cYv68+gmWeVh+w0nerDwDWEQAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwD+Wn0A6whA26cxxk/PL0EC0PVpjPHLGOOP51cEggSgaY7/8/P35yECSQLQ8+34JxEIEoCW18Y/iUCMAHS8N/5JBEIEoOGj459EIEIAzu/S8U8iECAA53bt+CcRODkBOK9bxz+JwIkJwDnda/yTCJyUAJzPvcc/icAJCcC5PGr8kwicjACcx6PHP4nAiQjAOWw1/kkETkIAjm/r8U8icAICcGyrxj+JwMEJwHGtHv8kAgcmAMe0l/FPInBQAnA8exv/JAIHJADHstfxTyJwMAJwHHsf/yQCByIAx3CU8U8icBACsH9HG/8kAgcgAPt21PFPIrBzArBfRx//JAI7JgD7dJbxTyKwUwKwP2cb/yQCOyQA+3LW8U8isDMCsB9nH/8kAjsiAPtQGf8kAjshAOvVxj+JwA4IwFrV8U8isJgArFMf/yQCCwnAGsb/NRFYRAC2Z/wvE4EFBGBbxv82EdiYAGzH+D9GBDYkANsw/suIwEYE4PGM/zoisAEBeCzjv40IPJgAPI7x34cIPJAAPIbx35cIPIgA3J/xP4YIPIAA3JfxP5YI3JkA3I/xb0ME7kgA7sP4tyUCdyIAtzP+NUTgDgTgNsa/lgjcSACuZ/z7IAI3EIDrGP++iMCVBOByxr9PInAFAbiM8e+bCFxIAD7O+I9BBC4gAB9j/MciAh8kAO8z/mMSgQ8QgLcZ/7GJwDsE4HXGfw4i8AYBeJnxn4sIvEIA/s/4z0kEXiAAXzP+cxOBbwjAv4y/QQT+QwD+YfwtIvDsaYwvq29Y7Ycxxp/D+Iu+H/H//jcHMgQns4BZIAAAAABJRU5ErkJggg==";
     this.eViewerObj = null;
+    this.translationObj = null;
     this.state = {
       value: "uploadDocument",
       defaultDisabled: false,
@@ -79,7 +81,15 @@ class App extends Component {
       isShowOnlyDocDivShow: false,
       isHideOnlyDocDivShow: false,
       showCustomStatusForm: false,
-      selectTextForm: false
+      selectTextForm: false,
+      applyCropForm: false,
+      compareDocumentForm: false,
+      compareImageOverLayForm: false,
+      isBackgroundTheme: "Default",
+      changeLangugaForm: false,
+      getTranslationForm: false,
+      setTranslationForm: false,
+      setPrintConfigForm: false
     };
 
     this.captionMap = new Map();
@@ -192,6 +202,18 @@ class App extends Component {
     }
   }
 
+  loadDefaultTranslations() {
+    this.translationObj = new TranslationService(this.props.userName);
+    this.translationObj
+      .loadTranslations()
+      .then((data) => {
+        console.log("Response", data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
   async loadViewer() {
     this.eViewerObj = new eViewerApp(this.props.userName);
     this.inputFieldDirectionSetMethod();
@@ -205,17 +227,23 @@ class App extends Component {
           "toolbar",
           "docTab"
         ]
-      }
+      },
+      backgroundTheme: this.props.selectedTheme,
+      isSkipLocationChange: this.props.isSkipLocationChange
     };
 
     this.eViewerObj
       .loadViewer("eviewer", null, null, "bestFit", options)
       .then(() => {
         console.log("loading viewer successfully");
-        this.eViewerObj.registerLicense(
-          this.licenseKey,
-          this.props.viewerServerURL
-        );
+        if (this.props.freeVersion === "true") {
+          this.eViewerObj.registerLicense("", this.props.viewerServerURL);
+        } else {
+          this.eViewerObj.registerLicense(
+            this.licenseKey,
+            this.props.viewerServerURL
+          );
+        }
       })
       .then(() =>
         this.eViewerObj.addContentSecurityPolicy(this.props.contentSecurity)
@@ -223,6 +251,7 @@ class App extends Component {
       .then(() => {
         if (this.props.registerCallbackFunctions) {
           this.registerCallBackFunctions();
+          this.loadDefaultTranslations();
         }
       })
       .then(() => {
@@ -234,7 +263,8 @@ class App extends Component {
         if (this.props.isHideRibbonToolBar) {
           this.eViewerObj.enableHideRibbonToolBar();
         }
-      });
+      })
+      .then(() => this.eViewerObj.getViewerInfo());
     await import("@mstechusa/eviewer7/styles.css");
     await import("@mstechusa/eviewer7/scripts");
     await import("@mstechusa/eviewer7/runtime");
@@ -304,23 +334,13 @@ class App extends Component {
 
     this.callBackAPIService.setAnnCreatedCallback((docID, annID, pageNo) => {
       console.log(
-        "annCreated: docID " +
-          docID +
-          " annID: " +
-          annID +
-          " pageNo: " +
-          pageNo,
+        "annCreated: docID " + docID + " annID: " + annID + " pageNo: " + pageNo
       );
     });
 
     this.callBackAPIService.setAnnDeletedCallback((docID, annID, pageNo) => {
       console.log(
-        "annDeleted: docID " +
-          docID +
-          " annID: " +
-          annID +
-          " pageNo: " +
-          pageNo,
+        "annDeleted: docID " + docID + " annID: " + annID + " pageNo: " + pageNo
       );
     });
 
@@ -373,6 +393,21 @@ class App extends Component {
     this.callBackAPIService.setPageCopiedCallback((docID, pageNo) => {
       console.log("pageCopied: " + docID + " current pageNo: " + pageNo);
     });
+
+    this.callBackAPIService.setDragDropCallback(
+      (docID, sourcePageNos, targetPageNo) => {
+        console.log(
+          "dragEvent details: " +
+            " docID: " +
+            docID +
+            ",	sourcePageNos: [" +
+            sourcePageNos +
+            "], targetPageNo: [" +
+            targetPageNo +
+            "]"
+        );
+      }
+    );
 
     this.callBackAPIService.setPagePastedCallback(
       (sourceDocID, sourcePageNos, targetDocID, targetPageNo) => {
@@ -486,6 +521,14 @@ class App extends Component {
       this.eViewerObj = new eViewerApp(this.props.userName);
     }
 
+    let infocusFileName = "some-document-description-INFOCUS";
+    let outFocusFileName = "some-document-description-OUTFOCUS";
+
+    if (this.props.selectedLanguage == "ja") {
+      infocusFileName = "??????????? - ??????";
+      outFocusFileName = "??????????? - ??????";
+    }
+
     this.eViewerObj.setUserName(this.props.userName);
     let annUrl = this.state.annURLs;
     if (annUrl == undefined) {
@@ -570,7 +613,7 @@ class App extends Component {
                 // color: "black",
                 // fontWeight: "",
                 // fontStyle: "",
-                fileName: "some-document-description-OUTFOCUS"
+                fileName: outFocusFileName
                 // icon: "",
               },
               focusTabStyle: {
@@ -578,7 +621,7 @@ class App extends Component {
                 // color: "white",
                 // fontWeight: "",
                 // fontStyle: "",
-                fileName: "some-document-description-INFOCUS"
+                fileName: infocusFileName
                 // icon: "",
               },
               thumbnailIconCallback: thumbnailCallbackImpl,
@@ -612,7 +655,7 @@ class App extends Component {
                 // color: "black",
                 // fontWeight: "",
                 // fontStyle: "",
-                fileName: "some-document-description-OUTFOCUS"
+                fileName: outFocusFileName
                 // icon: "",
               },
               focusTabStyle: {
@@ -620,7 +663,7 @@ class App extends Component {
                 // color: "white",
                 // fontWeight: "",
                 // fontStyle: "",
-                fileName: "some-document-description-INFOCUS"
+                fileName: infocusFileName
                 // icon: "",
               },
 
@@ -651,6 +694,16 @@ class App extends Component {
 
   submitUploadDetail = (event) => {
     this.uploadDocument();
+  };
+
+  submitPrintConfig = (event) => {
+    const printConfig = {
+      disablePrintOverlayOptions: false,
+      printWithAnn: JSON.parse(event.target[0].value),
+      printWithWatermarks: JSON.parse(event.target[1].value)
+    };
+    this.eViewerObj.editingService.setPrintConfiguration(printConfig);
+    this.disableAllDiv();
   };
 
   getPageVisibility = () => {
@@ -732,6 +785,93 @@ class App extends Component {
     this.state.customStatusFile = null;
   };
 
+  handleCropPage = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    let x = parseInt(formData.get("x"), 10);
+    let y = parseInt(formData.get("y"), 10);
+    let width = parseInt(formData.get("width"), 10);
+    let height = parseInt(formData.get("height"), 10);
+    let pageOption = formData.get("pageNo");
+    this.eViewerObj.annotationService.applyCrop(pageOption, {
+      x,
+      y,
+      width,
+      height
+    });
+    this.disableAllDiv();
+  };
+
+  handleCompareDocument = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    let firstDocId = formData.get("firstDocId");
+    let secondDocId = formData.get("secondDocId");
+    let syncScrolling =
+      formData.get("syncScroll")?.toString().toLowerCase() === "true";
+    this.eViewerObj.documentService.processCompareDocument(
+      firstDocId,
+      secondDocId,
+      syncScrolling
+    );
+    this.disableAllDiv();
+  };
+
+  handleCompareImageOverLay = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    let firstDocId = formData.get("firstDocId");
+    let secondDocId = formData.get("secondDocId");
+    this.eViewerObj.documentService.processCompareImageOverLay(
+      firstDocId,
+      secondDocId
+    );
+    this.disableAllDiv();
+  };
+
+  handleChangeLang = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    let langCodeName = formData.get("langCode");
+    this.translationObj
+      .changeLanguage(langCodeName)
+      .then((data) => {
+        console.log("Change Language", data);
+      })
+      .catch((err) => {
+        console.log("Change Language failed:", err);
+      });
+    this.disableAllDiv();
+  };
+
+  handleSetTranslation = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const rawInput = formData.get("translationJson");
+
+    if (!rawInput) {
+      console.warn("No translation content provided.");
+      return;
+    }
+
+    try {
+      const parsedTranslations = JSON.parse(rawInput);
+      this.translationObj
+        .setTranslation(parsedTranslations)
+        .then((data) => {
+          console.log("Set translation success:", data);
+        })
+        .catch((err) => {
+          console.log("Set translations failed:", err);
+        });
+    } catch (err) {
+      console.error("Invalid JSON string:", err);
+      alert("Invalid JSON format. Please ensure your input is valid JSON.");
+    }
+
+    this.disableAllDiv();
+  };
+
   submitSetEditMode = (event) => {
     event.preventDefault();
     this.eViewerObj.docPreferenceService.setEditMode(
@@ -761,7 +901,7 @@ class App extends Component {
 
       reader.onload = (events) => {
         this.setState({
-          icon: events.target.result,
+          icon: events.target.result
         });
       };
     } else {
@@ -943,6 +1083,12 @@ class App extends Component {
   };
 
   loadDocumentInternal = () => {
+    let fileName = "some-document-description";
+
+    if (this.props.selectedLanguage == "ja") {
+      fileName = "???????????";
+    }
+
     let documentSrvc = this.eViewerObj.getDocumentService();
     let annUrl = null;
     if (
@@ -959,7 +1105,7 @@ class App extends Component {
           this.docUrlArray[this.docIndex],
           annUrl,
           clientDocID,
-          "some-document-description",
+          fileName,
           {
             isEditMode: Number(this.state.editMode),
             repoType: "filesystem",
@@ -1468,7 +1614,16 @@ class App extends Component {
       isShowOnlyDocDivShow: false,
       isHideOnlyDocDivShow: false,
       showCustomStatusForm: false,
-      selectTextForm: false
+      selectTextForm: false,
+      applyCropForm: false,
+      compareDocumentForm: false,
+      compareImageOverLayForm: false,
+      isBackgroundTheme: false,
+      changeLangugaForm: false,
+      getTranslationForm: false,
+      setTranslationForm: false,
+      addTranslationForm: false,
+      setPrintConfigForm: false
     });
   };
 
@@ -2115,7 +2270,44 @@ class App extends Component {
           console.log("pastePage: " + response);
         });
         break;
+      case "copy":
+        this.eViewerObj.editingService.copy().then((response) => {
+          console.log(response);
+        });
+        break;
 
+      case "cut":
+        this.eViewerObj.editingService.cut().then((response) => {
+          console.log(response);
+        });
+        break;
+      case "paste":
+        this.eViewerObj.editingService.paste().then((response) => {
+          this.eViewerObj.documentService
+            .getCurrentPage()
+            .then((currentPage) => {
+              console.log("currentPage After pastePage: ");
+              console.info(currentPage);
+            });
+          console.log("pastePage: " + response);
+        });
+        break;
+      case "delete":
+        this.eViewerObj.editingService.delete().then((response) => {
+          this.eViewerObj.documentService
+            .getCurrentPage()
+            .then((currentPage) => {
+              console.log("currentPage After detetePage: ");
+              console.info(currentPage);
+            });
+          console.log("deletePage: " + response);
+        });
+        break;
+      case "getCurrentContext":
+        this.eViewerObj.editingService.getCurrentContext().then((response) => {
+          console.log(response);
+        });
+        break;
       case "invertPages":
         this.state.pageNO = null;
         this.setState({ isInvertPageDivShow: true });
@@ -2498,6 +2690,41 @@ class App extends Component {
       case "selectText":
         this.setState({ selectTextForm: true });
         break;
+      case "applyCrop":
+        this.setState({ applyCropForm: true });
+        break;
+      case "compareDocument":
+        this.setState({ compareDocumentForm: true });
+        break;
+      case "closeCompareDocument":
+        this.eViewerObj.documentService.closeCompareDocument();
+        break;
+      case "openComparePanel":
+        this.eViewerObj.documentService.openComparePanel();
+        break;
+      case "closeComparePanel":
+        this.eViewerObj.documentService.closeComparePanel();
+        break;
+      case "compareImageOverLay":
+        this.setState({ compareImageOverLayForm: true });
+        break;
+      case "changeLanguageForm":
+        this.setState({ changeLangugaForm: true });
+        break;
+      case "getTranslationForm":
+        this.translationObj
+          .getTranslations()
+          .then((data) => {
+            console.log(data);
+          })
+          .catch((err) => console.log(err));
+        break;
+      case "setTranslationForm":
+        this.setState({ setTranslationForm: true });
+        break;
+      case "setPrintConfigForm":
+        this.setState({ setPrintConfigForm: true });
+        break;
       default:
         break;
     }
@@ -2659,7 +2886,10 @@ class App extends Component {
       opacity: +event.target[10].value,
       fontFace: event.target[11].value,
       fontSize: +event.target[12].value,
-      fontColor: event.target[13].value
+      fontColor: event.target[13].value,
+      lineStartType: event.target[14].value,
+      lineEndType: event.target[15].value,
+      dashType: event.target[16].value
       // image: "BASE64STRING or relative path to image"
     };
 
@@ -2675,7 +2905,10 @@ class App extends Component {
       options.fontFace === "" &&
       options.fontSize === 0 &&
       options.fontColor === "" &&
-      options.opacity === 0
+      options.opacity === 0 &&
+      options.dashType === "" &&
+      options.lineEndType === "" &&
+      options.lineStartType === ""
     ) {
       options = undefined;
     }
@@ -3026,15 +3259,26 @@ class App extends Component {
       fontSize: 0,
       fontColor: "",
       borderOpacity: "",
-      annName: this.selectedAnnotation.name
+      annName: this.selectedAnnotation.name,
+      dashType: "",
+      lineStartType: "",
+      lineEndType: ""
     };
-    if (
-      this.selectedAnnotation.name === "line" ||
-      this.selectedAnnotation.name === "arrow"
-    ) {
+    if (this.selectedAnnotation.name === "line") {
       options.borderWidth = +event.target[5].value;
       options.borderColor = event.target[6].value;
       options.opacity = +event.target[7].value;
+      options.dashType = event.target[8].value;
+    } else if (this.selectedAnnotation.name === "arrow") {
+      options.borderWidth = +event.target[5].value;
+      options.borderColor = event.target[6].value;
+      options.opacity = +event.target[7].value;
+      if (!this.props.saveAnnotationTypeModcap) {
+        //nikhil for Generic_eVewer7_7212 : Regression : T_L saving
+        options.dashType = event.target[8]?.value;
+        options.lineStartType = event.target[9]?.value;
+        options.lineEndType = event.target[10]?.value;
+      }
     } else if (
       this.selectedAnnotation.name === "circle" ||
       this.selectedAnnotation.name === "rectangle" ||
@@ -3058,13 +3302,13 @@ class App extends Component {
       options.fontColor = event.target[11].value;
     } else if (this.selectedAnnotation.name === "predefinedText") {
       options.enterText = event.target[1].value;
-      options.rotateWithPage = event.target[2].value;
-      options.borderWidth = event.target[3].value;
-      options.borderColor = event.target[4].value;
-      options.fillColor = event.target[5].value;
-      options.opacity = +event.target[6].value;
-      options.fontFace = event.target[7].value;
-      options.fontColor = event.target[8].value;
+      // options.rotateWithPage = event.target[2].value;
+      // options.borderWidth = event.target[3].value;
+      // options.borderColor = event.target[4].value;
+      options.fillColor = event.target[2].value;
+      options.opacity = +event.target[3].value;
+      options.fontFace = event.target[4].value;
+      options.fontColor = event.target[5].value;
     } else if (this.selectedAnnotation.name === "checkpoint") {
       options.fillColor = event.target[5].value;
     } else if (this.selectedAnnotation.name === "stamp") {
@@ -3094,9 +3338,9 @@ class App extends Component {
       options.opacity = undefined;
     }
 
-    if(
+    if (
       this.selectedAnnotation.name === "predefinedText" &&
-      event.target[6].value === ""
+      event.target[3].value === ""
     ) {
       options.opacity = undefined;
     }
@@ -3120,7 +3364,10 @@ class App extends Component {
       (options.fontSize === 0 ||
         options.fontSize === undefined ||
         isNaN(options.fontSize)) &&
-      (options.fontColor === "" || options.fontColor === undefined)
+      (options.fontColor === "" || options.fontColor === undefined) &&
+      (options.dashType === "" || options.dashType === undefined) &&
+      (options.lineStartType === "" || options.lineStartType === undefined) &&
+      (options.lineEndType === "" || options.lineEndType === undefined)
     ) {
       options = undefined;
     }
@@ -3176,6 +3423,11 @@ class App extends Component {
       };
     } else {
       annotationData = "center";
+    }
+
+    if (options.annName === "predefinedText") {
+      options.borderWidth = 0;
+      options.rotateWithPage = true;
     }
 
     this.eViewerObj.annotationService.drawShapes(
@@ -3743,6 +3995,21 @@ class App extends Component {
               <option className="text-dark" value="pastePage">
                 PastePage
               </option>
+              <option className="text-dark" value="copy">
+                Copy
+              </option>
+              <option className="text-dark" value="cut">
+                Cut
+              </option>
+              <option className="text-dark" value="paste">
+                Paste
+              </option>
+              <option className="text-dark" value="delete">
+                Delete
+              </option>
+              <option className="text-dark" value="getCurrentContext">
+                Get Current Context
+              </option>
               <option className="text-dark" value="invertPages">
                 InvertPages
               </option>
@@ -4059,6 +4326,36 @@ class App extends Component {
               <option className="text-dark" value="selectText">
                 Select Text
               </option>
+              <option class="text-dark" value="applyCrop">
+                Apply Crop
+              </option>
+              <option class="text-dark" value="compareDocument">
+                Compare Document
+              </option>
+              <option class="text-dark" value="compareImageOverLay">
+                Compare ImageOverLays
+              </option>
+              <option class="text-dark" value="closeCompareDocument">
+                Close Compare Document
+              </option>
+              <option class="text-dark" value="openComparePanel">
+                Open Compare Panel
+              </option>
+              <option class="text-dark" value="closeComparePanel">
+                Close Compare Panel
+              </option>
+              <option class="text-dark" value="changeLanguageForm">
+                Change Language
+              </option>
+              <option class="text-dark" value="getTranslationForm">
+                Get Translation
+              </option>
+              <option class="text-dark" value="setTranslationForm">
+                Set Translation
+              </option>
+              <option class="text-dark" value="setPrintConfigForm">
+                Set Print Configuration
+              </option>
             </select>
           </div>
 
@@ -4089,59 +4386,6 @@ class App extends Component {
                       </button>
                       &nbsp;
                     </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
-            ""
-          )}
-
-          {this.state.showCustomStatusForm === true ? (
-            <>
-              <div>
-                <div className="login-box card bg-info div-mst">
-                  <div className="card-body">
-                    <form
-                      className="form-horizontal"
-                      onSubmit={this.addCustomStatusHandler}
-                    >
-                      <div className="form-group">
-                        {/* Status Text */}
-                        <div>
-                          <input
-                            type="text"
-                            className="form-control form-control-sm"
-                            name="statusText"
-                            placeholder="Enter Status Text"
-                            value={this.state.newStatusText}
-                            onChange={(e) =>
-                              this.setState({ newStatusText: e.target.value })
-                            }
-                            required
-                          />
-                        </div>
-
-                        {/* Image Upload */}
-                        <div style={{ marginTop: "8px" }}>
-                          <input
-                            type="file"
-                            className="form-control form-control-sm"
-                            name="statusImage"
-                            onChange={this.selectCustomStatusFile}
-                            accept="image/*"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="btn btn-primary"
-                        onClick={this.SubmtiSetCustomStatus}
-                      >
-                        Submit
-                      </button>
-                    </form>
                   </div>
                 </div>
               </div>
@@ -5361,7 +5605,7 @@ class App extends Component {
                           placeholder="Width"
                           required
                         />
-                      </div>                      
+                      </div>
                       <div>
                         <input
                           type="text"
@@ -5418,7 +5662,19 @@ class App extends Component {
                           type="text"
                           className="form-control form-control-sm col-sm-3"
                           name="fontColor"
-                          placeholder="FontColor"
+                          placeholder="fontColor"
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm col-sm-3"
+                          name="lineStartType"
+                          placeholder="lineStartType"
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm col-sm-3"
+                          name="lineEndType"
+                          placeholder="lineEndType"
                         />
                         <input
                           type="text"
@@ -5712,12 +5968,12 @@ class App extends Component {
                             name="enterText"
                             placeholder="Enter Text"
                           />
-                          <input
+                          {/* <input
                             type="text"
                             className="form-control form-control-sm col-sm-3"
                             name="rotateWithPage"
                             placeholder="rotateWithPage: true or false"
-                          />
+                          /> */}
                         </>
                       )}
                       {this.selectedAnnotation.name !== "predefinedText" && (
@@ -5780,12 +6036,16 @@ class App extends Component {
                             name="borderOpacity"
                             placeholder="borderOpacity"
                           />
-                          <input
-                            type="text"
-                            className="form-control form-control-sm col-sm-3"
-                            name="dashType"
-                            placeholder="dashType"
-                          />
+                          {!this.props.saveAnnotationTypeModcap && (
+                            <>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm col-sm-3"
+                                name="dashType"
+                                placeholder="dashType"
+                              />
+                            </>
+                          )}
                         </>
                       )}
                       {this.selectedAnnotation.name === "arrow" && (
@@ -5808,6 +6068,28 @@ class App extends Component {
                             name="borderOpacity"
                             placeholder="borderOpacity"
                           />
+                          {!this.props.saveAnnotationTypeModcap && (
+                            <>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm col-sm-3"
+                                name="dashType"
+                                placeholder="dashType"
+                              />
+                              <input
+                                type="text"
+                                className="form-control form-control-sm col-sm-3"
+                                name="lineStartType"
+                                placeholder="lineStartType"
+                              />
+                              <input
+                                type="text"
+                                className="form-control form-control-sm col-sm-3"
+                                name="lineEndType"
+                                placeholder="lineEndType"
+                              />
+                            </>
+                          )}
                         </>
                       )}
                       {(this.selectedAnnotation.name === "circle" ||
@@ -5862,8 +6144,7 @@ class App extends Component {
                           />
                         </>
                       )}
-                      {(this.selectedAnnotation.name === "text" ||
-                        this.selectedAnnotation.name === "predefinedText") && (
+                      {this.selectedAnnotation.name === "text" && (
                         <>
                           <input
                             type="text"
@@ -5909,7 +6190,45 @@ class App extends Component {
                             type="text"
                             className="form-control form-control-sm col-sm-3"
                             name="fontColor"
-                            placeholder="FontColor"
+                            placeholder="fontColor"
+                          />
+                        </>
+                      )}
+                      {this.selectedAnnotation.name === "predefinedText" && (
+                        <>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fillColor"
+                            placeholder="fillColor"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="opacity"
+                            placeholder="opacity"
+                          />
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fontFace"
+                            placeholder="FontFace"
+                          />
+                          {this.selectedAnnotation.name === "text" && (
+                            <>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm col-sm-3"
+                                name="fontSize"
+                                placeholder="fontSize"
+                              />
+                            </>
+                          )}
+                          <input
+                            type="text"
+                            className="form-control form-control-sm col-sm-3"
+                            name="fontColor"
+                            placeholder="fontColor"
                           />
                         </>
                       )}
@@ -5959,7 +6278,7 @@ class App extends Component {
                             type="text"
                             className="form-control form-control-sm col-sm-3"
                             name="fontColor"
-                            placeholder="FontColor"
+                            placeholder="fontColor"
                           />
                         </>
                       )}
@@ -6931,24 +7250,20 @@ class App extends Component {
                             </div>
                           </div>
                           <div className="form-row">
-                          <div className="col">
+                            <div className="col">
                               <input
-                                type="number"
-                                min="1"
-                                max="16"
+                                type="text"
                                 className="form-control form-control-sm"
-                                name="fontSize"
+                                name="color"
                                 onChange={this.docTabFontSize}
                                 placeholder="Font Size (1-16)"
                               />
                             </div>
                             <div className="col">
                               <input
-                                type="number"
-                                min="1"
-                                max="16"
+                                type="text"
                                 className="form-control form-control-sm"
-                                name="fontSize"
+                                name="color"
                                 onChange={this.docTabFocusFontSize}
                                 placeholder="Focus Font Size (1-16)"
                               />
@@ -8015,6 +8330,7 @@ class App extends Component {
                           <option value="Pen">Pen</option>
                           <option value="Highlight">Highlight</option>
                           <option value="Text">Text</option>
+                          <option value="SingleLineText">SingleLineText</option>
                           <option value="Stamp">Stamp</option>
                           <option value="Polyline">Polyline</option>
                           <option value="Polygon">Polygon</option>
@@ -8299,6 +8615,256 @@ class App extends Component {
                         </div>
                       </div>
 
+                      <button type="submit" className="btn btn-primary">
+                        Submit
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.applyCropForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.handleCropPage}
+                    >
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="pageNo"
+                          placeholder="All,Current,Custom range(1,2 or 1-5)"
+                          required
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="x"
+                          placeholder="Enter x"
+                          required
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="y"
+                          placeholder="Enter y"
+                          required
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="width"
+                          placeholder="Enter width"
+                          required
+                        />
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="height"
+                          placeholder="Enter height"
+                          required
+                        />
+                        <button type="submit" className="btn btn-primary">
+                          Submit
+                        </button>
+                        &nbsp;
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.compareDocumentForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.handleCompareDocument}
+                    >
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="syncScroll"
+                          placeholder="syncScrolling(true of false)"
+                        />
+
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="firstDocId"
+                          placeholder="Enter First Doc Id"
+                          required
+                        />
+
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="secondDocId"
+                          placeholder="Enter second Doc Id"
+                          required
+                        />
+                      </div>
+
+                      <button type="submit" className="btn btn-primary">
+                        Submit
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.compareImageOverLayForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.handleCompareImageOverLay}
+                    >
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="firstDocId"
+                          placeholder="Enter First Doc Id"
+                          required
+                        />
+
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="secondDocId"
+                          placeholder="Enter second Doc Id"
+                          required
+                        />
+                      </div>
+
+                      <button type="submit" className="btn btn-primary">
+                        Submit
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.changeLangugaForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.handleChangeLang}
+                    >
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="langCode"
+                          placeholder="Enter lang code name"
+                          required
+                        />
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Submit
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.setTranslationForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.handleSetTranslation}
+                    >
+                      <div className="form-group">
+                        <label
+                          htmlFor="translationJson"
+                          className="form-label text-white"
+                        >
+                          Paste Translation JSON / Object:
+                        </label>
+                        <textarea
+                          id="translationJson"
+                          name="translationJson"
+                          className="form-control form-control-sm"
+                          rows={12}
+                          placeholder={`{\n  "tabs": {\n    "View": "Voir",\n    "Insert": "Insertion"\n  },\n  "mycustomoptions": {\n    "Custom Key 1": "Custom Value 1",\n    "Custom Key 2": "Custom Value 2"\n  }\n}`}
+                          required
+                        />
+                      </div>
+
+                      <button type="submit" className="btn btn-primary mt-2">
+                        Submit
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+
+          {this.state.setPrintConfigForm === true ? (
+            <>
+              <div>
+                <div className="login-box card bg-info div-mst">
+                  <div className="card-body">
+                    <form
+                      className="form-horizontal"
+                      onSubmit={this.submitPrintConfig}
+                    >
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="printWithAnn"
+                          placeholder="printWithAnn(true or false)"
+                          required
+                        />
+
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          name="printWithWatermarks"
+                          placeholder="printWithWatermarks(true or false)"
+                          required
+                        />
+                      </div>
                       <button type="submit" className="btn btn-primary">
                         Submit
                       </button>

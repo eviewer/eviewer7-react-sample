@@ -8,6 +8,7 @@ class Form extends Component {
     super(props);
     this.state = {
       viewerServerURL: this.props.viewerServerURL,
+      freeVersion: this.props.freeVersion,
       serverUrl: "",
       savingEndpointReject: (response) => {
         return new Promise((resolve, reject) => {
@@ -82,6 +83,8 @@ class Form extends Component {
         });
       },
       ocrEndpoint: "",
+      officeServiceUrl: "",
+      aiServiceUrl: "",
       userName: this.props.userName,
       token: "",
       isViewerLoaded: false,
@@ -102,6 +105,7 @@ class Form extends Component {
           password: "BASE64 ENCODED PASSWORD GOES HERE",
         },
       ],
+      saveAnnotationTypeModcap: null,
     };
   }
 
@@ -121,6 +125,18 @@ class Form extends Component {
   handleInputocrEndpoint = (event) => {
     this.setState({
       ocrEndpoint: event.target.value
+    });
+  };
+
+  handleInputofficeServiceUrl = (event) => {
+    this.setState({
+      officeServiceUrl: event.target.value
+    });
+  };
+
+  handleInputaiServiceUrl = (event) => {
+    this.setState({
+      aiServiceUrl: event.target.value
     });
   };
 
@@ -275,7 +291,76 @@ class Form extends Component {
       this.state.defaultAnnotationPrefJSON
     );
     preferencesPromise.then((preferences) => {
-      viewerPrefSrvc.setUserPreferences(JSON.stringify(preferences.userPreferences), JSON.stringify(preferences.shortcutPreferences), preferences.userPreferences.annotationPreference);
+      console.log("Default User Preferences");
+      console.log(preferences);
+
+      const userPreferences = preferences.userPreferences;
+      const shortcutPreferences = preferences.shortcutPreferences;
+      const annotationPreferences = preferences.annotationPreferences;
+      console.log(userPreferences);
+      console.log(shortcutPreferences);
+      console.log(annotationPreferences);
+
+      let newPref = JSON.parse(JSON.stringify(userPreferences)); // just a hack to clone
+      let newAnnotationPref = JSON.parse(JSON.stringify(annotationPreferences));
+      newPref.general.isLogEnabled = true;
+      newPref.general.selectedOption = "debug";
+      if (self?.props?.overrideEnableHyperLink) {
+        if (
+          self.state.regularExpression == null ||
+          self.state.regularExpression === " "
+        ) {
+          self.state.regularExpression = " ";
+        }
+
+        if (
+          self?.state?.regularExpression != null &&
+          self?.state?.regularExpression !== "*"
+        ) {
+          newPref.general.enableHyperlinksByRegEx = new RegExp(
+            self.state.regularExpression
+          ).source;
+        }
+      }
+
+      // add new icon in the comment status
+      // newPref.commentStatus.push({
+      //   iconUrl : "data:image/png;base64,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",
+      //   text : "Delete"
+      // });
+
+      // delete icon from comment status
+      // newPref.commentStatus.pop(6);
+      console.log("Setting User Preferences with logs enabled");
+      console.info(newPref);
+      if (
+        this.state.defaultPrefJSON == null &&
+        this.state.userPrefEndPoint == null
+      ) {
+        newPref.general.selectedLanguage = this.props.selectedLanguage;
+      }
+
+      let newShortcutPref = JSON.parse(JSON.stringify(shortcutPreferences));
+
+      // newShortcutPref.shortcuts[0].key = "Ctrl+D+P";
+
+      console.log("Setting Shortcut Preferences with Ctrl+D+P for zoomin");
+      console.info(newShortcutPref);
+
+      newPref.general.isOcrEnabled = true;
+      viewerPrefSrvc
+        .setUserPreferences(newPref, newShortcutPref, newAnnotationPref)
+        .then((response) => {
+          viewerPrefSrvc.getUserPreferences().then((x) => {
+            this.setState({
+              saveAnnotationTypeModcap:
+                x.userPreferences.general.saveAnnotationAsMimeType ===
+                "application/vnd.ibm.modcap"
+            });
+            console.log("Getting User Preferences to verify logs are enabled");
+            console.log(x);
+          });
+        });
     });
   };
 
@@ -356,10 +441,10 @@ class Form extends Component {
           console.log(res);
         });
     }
-    if (this.props.useICNConnector) {
+    if (this.props.useFilenetConnector) {
       this.eViewerObj
         .getDocumentService()
-        .setICNFileNetCredentials("administrator", "MstSrv@05", "p8")
+        .setFileNetCredentials("", "", "p8")
         .then((res) => {
           console.log(res);
         });
@@ -374,7 +459,9 @@ class Form extends Component {
         this.state.savingEndpointReject, // for SSA
         // null, // set as null for Deloitte FL
         this.state.ocrEndpoint,
-        this.state.hideToolBar
+        this.state.hideToolBar,
+        this.state.officeServiceUrl,
+        this.state.aiServiceUrl
       );
     } else {
       this.eViewerObj.setDocumentEndPointOptions(
@@ -384,17 +471,9 @@ class Form extends Component {
         // null, // set as null for Deloitte FL
         this.state.ocrEndpoint,
         this.state.hideToolBar,
-        
+        this.state.officeServiceUrl,
+        this.state.aiServiceUrl
       );
-    }
-
-    if (this.props.useDocumentumConnector) {
-      this.eViewerObj
-        .getDocumentService()
-        .setDocumentumCredentials(this.state.userName, this.state.password, "documentum")
-        .then((res) => {
-          console.log(res);
-        });
     }
 
     this.setState({
@@ -409,7 +488,17 @@ class Form extends Component {
           style={{ display: this.state.isViewerLoaded ? "none" : "block" }}
           className="login-box card bg-info div-mst"
         >
-          <div className="card-body">
+          <div
+            className="card-body"
+            style={{
+              backgroundColor:
+                this.props.selectedTheme === "Dark"
+                  ? "rgb(43, 46, 54)"
+                  : this.props.selectedTheme === "Light"
+                    ? "rgb(240, 244, 249)"
+                    : undefined
+            }}
+          >
             <div className="form-horizontal">
               {}
               {}
@@ -436,6 +525,26 @@ class Form extends Component {
                   placeholder="OCR End point"
                 />
               </div>
+              <div className="form-group">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  name="officeServiceUrl"
+                  value={this.state.officeServiceUrl}
+                  onChange={this.handleInputofficeServiceUrl}
+                  placeholder="OfficeService URL (e.g. http://192.168.1.65:8081)"
+                />
+              </div>
+              <div className="form-group">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  name="aiServiceUrl"
+                  value={this.state.aiServiceUrl}
+                  onChange={this.handleInputaiServiceUrl}
+                  placeholder="aiServiceUrl (e.g. http://192.168.10.33:9999)"
+                />
+              </div>
               {}
               <div className="form-group">
                 <input
@@ -449,7 +558,14 @@ class Form extends Component {
               </div>
               {
                 <div className="form-group">
-                  <div style={{ color: "#3f2626" }}>User Preference JSON</div>
+                  <div
+                    style={{
+                      color:
+                        this.props.selectedTheme === "Dark" ? "#fff" : "#3f2626"
+                    }}
+                  >
+                    User Preference JSON
+                  </div>
                   <input
                     type="file"
                     className="form-control form-control-sm wrapword"
@@ -462,7 +578,12 @@ class Form extends Component {
               }
               {
                 <div className="form-group">
-                  <div style={{ color: "#3f2626" }}>
+                  <div
+                    style={{
+                      color:
+                        this.props.selectedTheme === "Dark" ? "#fff" : "#3f2626"
+                    }}
+                  >
                     Shortcut Preference JSON
                   </div>
                   <input
@@ -477,7 +598,14 @@ class Form extends Component {
               }
               {
                 <div className="form-group">
-                  <div style={{ color: "#3f2626" }}>Annotation Preference JSON</div>
+                  <div
+                    style={{
+                      color:
+                        this.props.selectedTheme === "Dark" ? "#fff" : "#3f2626"
+                    }}
+                  >
+                    Annotation Preference JSON
+                  </div>
                   <input
                     type="file"
                     className="form-control form-control-sm wrapword"
@@ -490,7 +618,15 @@ class Form extends Component {
               }
               {
                 <div className="form-group">
-                  <div style={{ color: "#3f2626" }}> User Preference URL</div>
+                  <div
+                    style={{
+                      color:
+                        this.props.selectedTheme === "Dark" ? "#fff" : "#3f2626"
+                    }}
+                  >
+                    {" "}
+                    User Preference URL
+                  </div>
                   <input
                     type="text"
                     className="form-control form-control-sm wrapword"
@@ -504,7 +640,12 @@ class Form extends Component {
               }
               {
                 <div className="form-group">
-                  <div style={{ color: "#3f2626" }}>
+                  <div
+                    style={{
+                      color:
+                        this.props.selectedTheme === "Dark" ? "#fff" : "#3f2626"
+                    }}
+                  >
                     Shortcut Preference URL
                   </div>
                   <input
@@ -520,7 +661,14 @@ class Form extends Component {
               }
               {
                 <div className="form-group">
-                  <div style={{ color: "#3f2626" }}>Regular Expression</div>
+                  <div
+                    style={{
+                      color:
+                        this.props.selectedTheme === "Dark" ? "#fff" : "#3f2626"
+                    }}
+                  >
+                    Regular Expression
+                  </div>
                   <input
                     type="text"
                     className="form-control form-control-sm wrapword"
@@ -539,12 +687,20 @@ class Form extends Component {
                 >
                   <input
                     type="checkbox"
-                    className="form-control form-control-sm"
+                    className="form-control-sm"
                     name="savePayloadType"
                     onChange={this.handleSavePayloadType}
                     style={{ height: "30px", width: "30px" }}
                   />
-                  <div style={{ color: "#3f2626", marginLeft: "5%" }}>
+                  <div
+                    style={{
+                      color:
+                        this.props.selectedTheme === "Dark"
+                          ? "#fff"
+                          : "#3f2626",
+                      marginLeft: "5%"
+                    }}
+                  >
                     &nbsp;SavePayloadType - multipart/form-data
                   </div>
                 </div>
@@ -556,24 +712,44 @@ class Form extends Component {
                 >
                   <input
                     type="checkbox"
-                    className="form-control form-control-sm"
+                    className="form-control-sm"
                     name="saveEndpointReject"
                     onChange={this.handlesaveEndpointReject}
                     style={{ height: "30px", width: "30px" }}
                   />
-                  <div style={{ color: "#3f2626", marginLeft: "5%" }}>
+                  <div
+                    style={{
+                      color:
+                        this.props.selectedTheme === "Dark"
+                          ? "#fff"
+                          : "#3f2626",
+                      marginLeft: "5%"
+                    }}
+                  >
                     {" "}
                     &nbsp;saveDocumentEndpointReject
                   </div>
                 </div>
               }
-              <button className="btn btn-primary" onClick={this.handleSubmit}>
+              <button
+                className="btn btn-primary"
+                style={{
+                  backgroundColor:
+                    this.props.selectedTheme === "Dark"
+                      ? "rgb(43, 46, 54)"
+                      : this.props.selectedTheme === "Light"
+                        ? "rgb(240, 244, 249)"
+                        : undefined,
+                  color:
+                    this.props.selectedTheme === "Light" ? "black" : undefined
+                }}
+                onClick={this.handleSubmit}
+              >
                 Submit
               </button>
             </div>
           </div>
         </div>
-
         {}
         <div
           id="mainviewer"
@@ -583,18 +759,22 @@ class Form extends Component {
         >
           <App
             viewerServerURL={this.props.viewerServerURL}
+            freeVersion={this.props.freeVersion}
             userName={this.props.userName}
-            password={this.props.password}
             licenseKey={this.props.licenseKey}
             overrideCtxMenu={this.props.overrideCtxMenu}
             overrideThumbIndicator={this.props.overrideThumbIndicator}
             overrideHyperLink={this.props.overrideEnableHyperLink}
             contentSecurity={this.props.contentSecurity}
+            selectedTheme={this.props.selectedTheme}
             documentumConnector={this.props.useDocumentumConnector}
             enableShortcutWithoutClick={this.props.enableShortcutWithoutClick}
             registerCallbackFunctions={this.props.registerCallbackFunctions}
             isHideRibbonToolBar={this.props.isHideRibbonToolBar}
+            isSkipLocationChange={this.props.isSkipLocationChange}
             isRibbonHidden={this.state.isRibbonHidden}
+            saveAnnotationTypeModcap={this.state.saveAnnotationTypeModcap}
+            selectedLanguage = {this.props.selectedLanguage}
           />
         </div>
       </>

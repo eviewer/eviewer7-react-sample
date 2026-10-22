@@ -111,11 +111,26 @@ window._pageCopied = function (docID, pageNo) {
   } catch (exp) {}
 };
 
+window._dragDropValue = function (docID, sourcePageNos, targetPageNo) {
+  try {
+    console.log(
+      "dragEvent details: " +
+        " docID: " +
+        docID +
+        ",	sourcePageNos: [" +
+        sourcePageNos +
+        "], targetPageNo: [" +
+        targetPageNo +
+        "]"
+    );
+  } catch (exp) {}
+};
+
 window._pagePasted = function (
   sourceDocID,
   sourcePageNos,
   targetDocID,
-  targetPageNo,
+  targetPageNo
 ) {
   try {
     if (sourceDocID == null && targetDocID == null) {
@@ -126,7 +141,7 @@ window._pagePasted = function (
           "], " +
           ", targetPageNo: [" +
           targetPageNo +
-          "]",
+          "]"
       );
     } else {
       console.log(
@@ -139,7 +154,7 @@ window._pagePasted = function (
           targetDocID +
           ", targetPageNo: [" +
           targetPageNo +
-          "]",
+          "]"
       );
     }
   } catch (exp) {}
@@ -219,7 +234,7 @@ window._tabSwitch = function (outFocusViewerDocID, inFocusViewerDocID) {
   try {
     console.log({
       Outfocus_ViewerDocID: outFocusViewerDocID,
-      Infocus_ViewerDocID: inFocusViewerDocID,
+      Infocus_ViewerDocID: inFocusViewerDocID
     });
   } catch (exp) {}
 };

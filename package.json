@@ -4,23 +4,24 @@
   "private": true,
   "homepage": "/reactappnpmdemo",
   "dependencies": {
-    "@mstechusa/eviewer7": "^7.0.371",
-    "@testing-library/jest-dom": "^5.11.9",
-    "@testing-library/react": "^11.2.5",
-    "@testing-library/user-event": "^12.8.1",
-    "bootstrap": "^4.6.2",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
-    "react-pdf": "^5.2.0",
-    "react-scripts": "4.0.3",
-    "react-uuid": "^1.0.2",
-    "typescript": "^4.2.3",
-    "web-vitals": "^1.1.0"
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "ajv": "^8.17.1",
+    "bootstrap": "5.3.8",
+    "@mstechusa/eviewer7": "^7.2.42",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "react-pdf": "10.2.0",
+    "react-scripts": "5.0.1",
+    "typescript": "5.9.3",
+    "uuid": "13.0.0",
+    "web-vitals": "5.1.0"
   },
   "scripts": {
-    "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider react-scripts --max_old_space_size=10000 start",
-    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider react-scripts --max_old_space_size=10000 build",
-    "test": "cross-env NODE_OPTIONS=--openssl-legacy-provider react-scripts test --transformIgnorePatterns \"node_modules/(?!eviewerjs)/\"",
+    "start": "react-scripts --max_old_space_size=10000 start",
+    "build": "react-scripts --max_old_space_size=10000 build",
+    "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!eviewerjs)/\"",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -46,7 +47,6 @@
     ]
   },
   "devDependencies": {
-    "cross-env": "^7.0.3",
-    "eslint-plugin-react": "^7.22.0"
+    "eslint-plugin-react": "7.37.5"
   }
 }

@@ -14,13 +14,18 @@ class InitForm extends Component {
       operationPerformUsingRegExField: true,
       isRightClickContextMenuChecked: true,
       isDocumentumConnectorChecked: false,
+      isFilenetConnectorChecked: false,
       isEnableSHortcutKeysWithoutClick: true,
       isRegisterCallbackFunctions: true,
       userName: "demo user",
-      password: "",
       contentSecurity: "",
       licenseKey: "PROVIDED BY MST",
+      selectedTheme: "Default",
       viewerServerURL: "",
+      freeVersion: "",
+      isHideRibbonToolBar: false,
+      isSkipLocationChange: false,
+      selectedLanguage : "en"
     };
   }
 
@@ -31,14 +36,18 @@ class InitForm extends Component {
         overrideCtxMenu={this.state.isRightClickContextMenuChecked}
         overrideThumbIndicator={this.state.isThumbnailIndicatorChecked}
         overrideEnableHyperLink={this.state.operationPerformUsingRegExField}
-        useDocumentumConnector= {this.state.isDocumentumConnectorChecked}
+        useDocumentumConnector={this.state.isDocumentumConnectorChecked}
+        useFilenetConnector={this.state.isFilenetConnectorChecked}
         userName={this.state.userName}
-        password={this.state.password}
         viewerServerURL={this.state.viewerServerURL}
+        freeVersion={this.state.freeVersion}
         contentSecurity={this.state.contentSecurity}
-        enableShortcutWithoutClick = {this.state.isEnableSHortcutKeysWithoutClick}
-        registerCallbackFunctions = {this.state.isRegisterCallbackFunctions}
-        isHideRibbonToolBar = {this.state.isHideRibbonToolBar}
+        selectedTheme={this.state.selectedTheme}
+        enableShortcutWithoutClick={this.state.isEnableSHortcutKeysWithoutClick}
+        registerCallbackFunctions={this.state.isRegisterCallbackFunctions}
+        isHideRibbonToolBar={this.state.isHideRibbonToolBar}
+        isSkipLocationChange={this.state.isSkipLocationChange}
+        selectedLanguage = {this.state.selectedLanguage}
       />
     );
   };
@@ -53,17 +62,23 @@ class InitForm extends Component {
     });
   };
 
-  handleInputPassword = (event) => {
-    this.setState({
-      password: event.target.value,
-    });
-  };  
-
   handleContentSecurity = (event) => {
     this.setState({
       contentSecurity: event.target.value,
     });
   };
+
+  handleColourMode = (event) => {
+    this.setState({
+      selectedTheme: event.target.value,
+    });
+  };
+
+  handleDefaultLang = (event) => {
+    this.setState({
+      selectedLanguage : event.target.value,
+    })
+  }
 
   handleInputLicenseKey = (event) => {
     this.setState({
@@ -77,6 +92,12 @@ class InitForm extends Component {
     });
   };
 
+  handleInputfreeVersion = (event) => {
+    this.setState({
+      freeVersion: event.target.value,
+    });
+  };
+
   toggleOverrideCtxMenu = () => {
     this.setState({
       isRightClickContextMenuChecked:
@@ -87,37 +108,44 @@ class InitForm extends Component {
   toggleEnableShortcutWithoutClick = () => {
     this.setState({
       isEnableSHortcutKeysWithoutClick:
-        !this.state.isEnableSHortcutKeysWithoutClick
+        !this.state.isEnableSHortcutKeysWithoutClick,
     });
   };
   toggleRegisterCallbackFunctions = () => {
     this.setState({
-      isRegisterCallbackFunctions:
-        !this.state.isRegisterCallbackFunctions
+      isRegisterCallbackFunctions: !this.state.isRegisterCallbackFunctions,
     });
-  }
+  };
   toggleOverrideThumbIndicatorOverride = () => {
     this.setState({
       isThumbnailIndicatorChecked: !this.state.isThumbnailIndicatorChecked,
     });
   };
 
-    toggleHideRibbonToolBar = () =>{
+  toggleHideRibbonToolBar = () => {
     this.setState({
-      isHideRibbonToolBar:
-      !this.state.isHideRibbonToolBar
-    })
-  }
-
-  toggleDocumentumConnector = () => {
-    this.setState({
-      isDocumentumConnectorChecked: !this.state.isDocumentumConnectorChecked,
+      isHideRibbonToolBar: !this.state.isHideRibbonToolBar,
     });
   };
-  toggleICNConnector = () => {
+
+  toggleSkipLocationChange = () => {
     this.setState({
-      isICNConnectorChecked: !this.state.isICNConnectorChecked,
+      isSkipLocationChange: !this.state.isSkipLocationChange,
     });
+  };
+
+  toggleDocumentumConnector = () => {
+    this.setState((prevState) => ({
+      isDocumentumConnectorChecked: !this.state.isDocumentumConnectorChecked,
+      isFilenetConnectorChecked: false,
+    }));
+  };
+
+  toggleFilenetConnector = () => {
+    this.setState((prevState) => ({
+      isFilenetConnectorChecked: !this.state.isFilenetConnectorChecked,
+      isDocumentumConnectorChecked: false,
+    }));
   };
 
   toggleOverrideEnableHyperLink = () => {
@@ -144,6 +172,16 @@ class InitForm extends Component {
             placeholder="viewerServerURL"
           />
         </div>
+        <div className="form-group">
+          <input
+            type="text"
+            className="form-control form-control-sm"
+            name="freeVersion"
+            value={this.state.freeVersion}
+            onChange={this.handleInputfreeVersion}
+            placeholder="freeVersion"
+          />
+        </div>        
         <div>
           <input
             type="text"
@@ -164,18 +202,6 @@ class InitForm extends Component {
             placeholder="User Name"
           />
         </div>
-        {this.state.isDocumentumConnectorChecked && (
-          <div>
-            <input
-              type="password"
-              className="form-control form-control-sm"
-              name="Password"
-              value={this.state.password}
-              onChange={this.handleInputPassword}
-              placeholder="Password"
-            />
-          </div>
-        )}       
         <div>
           <input
             type="text"
@@ -184,6 +210,26 @@ class InitForm extends Component {
             value={this.state.contentSecurity}
             onChange={this.handleContentSecurity}
             placeholder="Content Security Policy"
+          />
+        </div>
+        <div>
+          <input
+            type="text"
+            className="form-control form-control-sm"
+            name="Content Security Policy"
+            value={this.state.selectedTheme}
+            onChange={this.handleColourMode}
+            placeholder="defaul/dark/light theme"
+          />
+        </div>
+        <div>
+          <input
+            type="text"
+            className="form-control form-control-sm"
+            name="Content Security Policy"
+            value={this.state.selectedLanguage}
+            onChange={this.handleDefaultLang}
+            placeholder="en , ja ,fr"
           />
         </div>
         <div>
@@ -210,7 +256,7 @@ class InitForm extends Component {
           <label>
             <input
               type="checkbox"
-              defaultChecked={this.state.isDocumentumConnectorChecked}
+              checked={this.state.isDocumentumConnectorChecked}
               onChange={this.toggleDocumentumConnector}
             />
             Use Documentum Connector
@@ -220,10 +266,10 @@ class InitForm extends Component {
           <label>
             <input
               type="checkbox"
-              defaultChecked={this.state.isICNConnectorChecked}
-              onChange={this.toggleICNConnector}
+              checked={this.state.isFilenetConnectorChecked}
+              onChange={this.toggleFilenetConnector}
             />
-            Use ICN Connector
+            Use Filenet Connector
           </label>
         </div>
         <div>
@@ -245,7 +291,7 @@ class InitForm extends Component {
             />
             Enable Shortcut keys over Viewer
           </label>
-        </div> 
+        </div>
         <div>
           <label>
             <input
@@ -256,7 +302,7 @@ class InitForm extends Component {
             Register Callback functions
           </label>
         </div>
-         <div>
+        <div>
           <label>
             <input
               type="checkbox"
@@ -266,6 +312,16 @@ class InitForm extends Component {
             Hide Ribbon ToolBar
           </label>
         </div>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              defaultChecked={this.state.isSkipLocationChange}
+              onChange={this.toggleSkipLocationChange}
+            />
+            SkipLocationChange
+          </label>
+        </div>        
         <div>
           <button className="btn btn-primary" onClick={this.handleSubmit}>
             Load Viewer
