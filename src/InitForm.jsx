@@ -219,7 +219,7 @@ class InitForm extends Component {
             name="Content Security Policy"
             value={this.state.selectedTheme}
             onChange={this.handleColourMode}
-            placeholder="defaul/dark/light theme"
+            placeholder="Default | Dark | Light"
           />
         </div>
         <div>
