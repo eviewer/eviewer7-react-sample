@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import "./App.css";
 import eViewerApp from "@mstechusa/eviewer7/js/eViewer7";
-import TranslationService from "eviewerjs/js/translation";
+import TranslationService from "@mstechusa/eviewer7/js/translation";
 import "./js/events";
 import { v4 as uuid } from "uuid";
 
